@@ -1,30 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, type DatabaseRow } from '@/lib/db';
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const period = searchParams.get('period') || 'today'; // today, week, month
 
-    let dateFilter = "date(created_at, 'localtime') = date('now', 'localtime')";
+    let dateFilter = "(created_at AT TIME ZONE 'America/Argentina/Buenos_Aires')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Argentina/Buenos_Aires')::date";
     if (period === 'week') {
-      dateFilter = "created_at >= date('now', '-7 days', 'localtime')";
+      dateFilter = "created_at >= CURRENT_TIMESTAMP - INTERVAL '7 days'";
     } else if (period === 'month') {
-      dateFilter = "created_at >= date('now', 'start of month', 'localtime')";
+      dateFilter = "created_at >= date_trunc('month', CURRENT_TIMESTAMP AT TIME ZONE 'America/Argentina/Buenos_Aires')";
     }
 
     // Totals
-    const totals = db.prepare(`
+    const totals = await db.prepare(`
       SELECT 
         COUNT(*) as total_orders,
         COALESCE(SUM(total_amount), 0) as total_revenue,
         COALESCE(AVG(total_amount), 0) as avg_ticket
       FROM orders
       WHERE ${dateFilter} AND kitchen_status != 'cancelado'
-    `).get() as any;
+    `).get() as DatabaseRow;
 
     // By Payment Method
-    const byPaymentMethod = db.prepare(`
+    const byPaymentMethod = await db.prepare(`
       SELECT 
         payment_method,
         COUNT(*) as count,
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
     `).all();
 
     // By Order Type
-    const byOrderType = db.prepare(`
+    const byOrderType = await db.prepare(`
       SELECT 
         order_type,
         COUNT(*) as count,
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     `).all();
 
     // Top Selling Products
-    const topProducts = db.prepare(`
+    const topProducts = await db.prepare(`
       SELECT 
         oi.product_name,
         oi.unit_type,

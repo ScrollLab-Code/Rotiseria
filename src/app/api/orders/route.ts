@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, runInTransaction } from '@/lib/db';
+import { db, runInTransaction, type DatabaseRow } from '@/lib/db';
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,9 +13,9 @@ export async function GET(req: NextRequest) {
     const params: (string | number)[] = [];
 
     if (date === 'today' || !date) {
-      conditions.push("date(created_at, 'localtime') = date('now', 'localtime')");
+      conditions.push("(created_at AT TIME ZONE 'America/Argentina/Buenos_Aires')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Argentina/Buenos_Aires')::date");
     } else if (date && date !== 'all') {
-      conditions.push("date(created_at, 'localtime') = date(?)");
+      conditions.push("(created_at AT TIME ZONE 'America/Argentina/Buenos_Aires')::date = ?::date");
       params.push(date);
     }
 
@@ -35,12 +35,11 @@ export async function GET(req: NextRequest) {
 
     query += ' ORDER BY created_at DESC';
 
-    const orders = db.prepare(query).all(...params) as any[];
+    const orders = await db.prepare(query).all(...params) as (DatabaseRow & { id: number; items?: DatabaseRow[] })[];
 
     // Attach items to each order
-    const getItems = db.prepare('SELECT * FROM order_items WHERE order_id = ?');
     for (const order of orders) {
-      order.items = getItems.all(order.id);
+      order.items = await db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id);
     }
 
     return NextResponse.json(orders);
@@ -74,33 +73,26 @@ export async function POST(req: NextRequest) {
     }
 
     // Get today's max order_number
-    const maxOrder = db.prepare(`
+    const maxOrder = await db.prepare(`
       SELECT MAX(order_number) as max_num FROM orders 
-      WHERE date(created_at, 'localtime') = date('now', 'localtime')
+      WHERE (created_at AT TIME ZONE 'America/Argentina/Buenos_Aires')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Argentina/Buenos_Aires')::date
     `).get() as { max_num: number | null };
 
     const nextOrderNum = (maxOrder?.max_num || 0) + 1;
 
     // Get active cash shift ID
-    const activeShift = db.prepare("SELECT id FROM cash_shifts WHERE status = 'abierta' ORDER BY id DESC LIMIT 1").get() as { id: number } | undefined;
+    const activeShift = await db.prepare("SELECT id FROM cash_shifts WHERE status = 'abierta' ORDER BY id DESC LIMIT 1").get() as { id: number } | undefined;
     const shiftId = activeShift ? activeShift.id : null;
 
-    const insertOrder = db.prepare(`
+    const createdOrderId = await runInTransaction(async (query) => {
+      const [createdOrder] = await query(`
       INSERT INTO orders (
         order_number, order_type, customer_name, customer_phone, delivery_address, delivery_notes,
         payment_method, payment_status, kitchen_status, total_amount, cash_paid, change_amount,
         notes, cash_shift_id
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    const insertItem = db.prepare(`
-      INSERT INTO order_items (
-        order_id, product_id, product_name, unit_price, quantity, unit_type, subtotal, notes
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    const createdOrderId = runInTransaction(() => {
-      const result = insertOrder.run(
+      RETURNING id
+    `, [
         nextOrderNum,
         order_type,
         customer_name,
@@ -115,12 +107,15 @@ export async function POST(req: NextRequest) {
         change_amount,
         notes,
         shiftId
-      );
-
-      const orderId = result.lastInsertRowid;
+      ]);
+      const orderId = createdOrder.id as number;
 
       for (const item of items) {
-        insertItem.run(
+        await query(`
+          INSERT INTO order_items (
+            order_id, product_id, product_name, unit_price, quantity, unit_type, subtotal, notes
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
           orderId,
           item.product_id || null,
           item.product_name,
@@ -129,15 +124,18 @@ export async function POST(req: NextRequest) {
           item.unit_type,
           item.subtotal,
           item.notes || ''
-        );
+        ]);
       }
 
       return orderId;
     });
 
     // Fetch full order
-    const createdOrder = db.prepare('SELECT * FROM orders WHERE id = ?').get(createdOrderId) as any;
-    createdOrder.items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(createdOrderId);
+    const createdOrder = await db.prepare('SELECT * FROM orders WHERE id = ?').get(createdOrderId) as (DatabaseRow & { items?: DatabaseRow[] }) | undefined;
+    if (!createdOrder) {
+      throw new Error('No se pudo recuperar el pedido recién creado');
+    }
+    createdOrder.items = await db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(createdOrderId);
 
     return NextResponse.json(createdOrder, { status: 201 });
   } catch (error) {
@@ -156,7 +154,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const updates: string[] = ["updated_at = CURRENT_TIMESTAMP"];
-    const params: any[] = [];
+    const params: (string | number)[] = [];
 
     if (kitchen_status) {
       updates.push("kitchen_status = ?");
@@ -170,10 +168,13 @@ export async function PATCH(req: NextRequest) {
 
     params.push(id);
 
-    db.prepare(`UPDATE orders SET ${updates.join(', ')} WHERE id = ?`).run(...params);
+    await db.prepare(`UPDATE orders SET ${updates.join(', ')} WHERE id = ?`).run(...params);
 
-    const updatedOrder = db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as any;
-    updatedOrder.items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(id);
+    const updatedOrder = await db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as (DatabaseRow & { items?: DatabaseRow[] }) | undefined;
+    if (!updatedOrder) {
+      return NextResponse.json({ error: 'No se encontró el pedido' }, { status: 404 });
+    }
+    updatedOrder.items = await db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(id);
 
     return NextResponse.json(updatedOrder);
   } catch (error) {

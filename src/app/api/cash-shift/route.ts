@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, type DatabaseRow } from '@/lib/db';
 
 export async function GET() {
   try {
     // Get active shift
-    const activeShift = db.prepare("SELECT * FROM cash_shifts WHERE status = 'abierta' ORDER BY id DESC LIMIT 1").get() as any;
+    const activeShift = await db.prepare("SELECT * FROM cash_shifts WHERE status = 'abierta' ORDER BY id DESC LIMIT 1").get() as DatabaseRow | undefined;
 
     if (!activeShift) {
       return NextResponse.json({ activeShift: null });
     }
 
     // Get shift sales summary
-    const salesSummary = db.prepare(`
+    const salesSummary = await db.prepare(`
       SELECT 
         payment_method,
         COUNT(*) as total_orders,
@@ -19,12 +19,12 @@ export async function GET() {
       FROM orders
       WHERE cash_shift_id = ? AND payment_status = 'pagado'
       GROUP BY payment_method
-    `).all(activeShift.id) as any[];
+    `).all(activeShift.id);
 
     // Get cash movements (Ingresos / Egresos extra)
-    const movements = db.prepare(`
+    const movements = await db.prepare(`
       SELECT * FROM cash_movements WHERE cash_shift_id = ? ORDER BY created_at DESC
-    `).all(activeShift.id) as any[];
+    `).all(activeShift.id);
 
     // Calculate totals
     const cashSales = salesSummary.find(s => s.payment_method === 'efectivo')?.total_amount || 0;
@@ -68,38 +68,38 @@ export async function POST(req: NextRequest) {
       const { initial_cash } = body;
       
       // Check if shift is already open
-      const currentOpen = db.prepare("SELECT * FROM cash_shifts WHERE status = 'abierta'").get();
+      const currentOpen = await db.prepare("SELECT * FROM cash_shifts WHERE status = 'abierta'").get();
       if (currentOpen) {
         return NextResponse.json({ error: 'Ya existe una caja abierta' }, { status: 400 });
       }
 
-      const res = db.prepare("INSERT INTO cash_shifts (initial_cash, status) VALUES (?, 'abierta')").run(initial_cash || 0);
-      const newShift = db.prepare("SELECT * FROM cash_shifts WHERE id = ?").get(res.lastInsertRowid);
+      const insertedShift = await db.prepare("INSERT INTO cash_shifts (initial_cash, status) VALUES (?, 'abierta') RETURNING id").get(initial_cash || 0);
+      const newShift = await db.prepare("SELECT * FROM cash_shifts WHERE id = ?").get(insertedShift.id);
 
       return NextResponse.json({ message: 'Caja abierta con éxito', shift: newShift });
     }
 
     if (action === 'close') {
       const { final_cash_counted, notes } = body;
-      const activeShift = db.prepare("SELECT * FROM cash_shifts WHERE status = 'abierta' ORDER BY id DESC LIMIT 1").get() as any;
+      const activeShift = await db.prepare("SELECT * FROM cash_shifts WHERE status = 'abierta' ORDER BY id DESC LIMIT 1").get() as DatabaseRow | undefined;
 
       if (!activeShift) {
         return NextResponse.json({ error: 'No hay ninguna caja abierta' }, { status: 400 });
       }
 
       // Calculate expected cash
-      const cashSalesObj = db.prepare(`
+      const cashSalesObj = await db.prepare(`
         SELECT SUM(total_amount) as total FROM orders WHERE cash_shift_id = ? AND payment_method = 'efectivo' AND payment_status = 'pagado'
       `).get(activeShift.id) as { total: number | null };
 
-      const movements = db.prepare('SELECT type, amount FROM cash_movements WHERE cash_shift_id = ?').all(activeShift.id) as any[];
+      const movements = await db.prepare('SELECT type, amount FROM cash_movements WHERE cash_shift_id = ?').all(activeShift.id);
       const ingresos = movements.filter(m => m.type === 'ingreso').reduce((a, b) => a + b.amount, 0);
       const egresos = movements.filter(m => m.type === 'egreso').reduce((a, b) => a + b.amount, 0);
 
       const cashSales = cashSalesObj.total || 0;
       const expectedCash = activeShift.initial_cash + cashSales + ingresos - egresos;
 
-      db.prepare(`
+      await db.prepare(`
         UPDATE cash_shifts
         SET closed_at = CURRENT_TIMESTAMP,
             final_cash_expected = ?,
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
 
     if (action === 'movement') {
       const { type, amount, concept } = body;
-      const activeShift = db.prepare("SELECT id FROM cash_shifts WHERE status = 'abierta' ORDER BY id DESC LIMIT 1").get() as { id: number } | undefined;
+      const activeShift = await db.prepare("SELECT id FROM cash_shifts WHERE status = 'abierta' ORDER BY id DESC LIMIT 1").get() as { id: number } | undefined;
 
       if (!activeShift) {
         return NextResponse.json({ error: 'No hay caja abierta para registrar movimientos' }, { status: 400 });
@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Tipo, monto y concepto son obligatorios' }, { status: 400 });
       }
 
-      db.prepare(`
+      await db.prepare(`
         INSERT INTO cash_movements (cash_shift_id, type, amount, concept)
         VALUES (?, ?, ?, ?)
       `).run(activeShift.id, type, amount, concept);
