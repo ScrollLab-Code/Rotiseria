@@ -41,7 +41,7 @@ export default function OrdersView({ orders, onRefresh }: OrdersViewProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white p-4 border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] space-y-3">
+      <div className="bg-white p-4 border-2 border-slate-900 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center space-x-3">
             <div className="p-3 bg-orange-500 text-white border-2 border-slate-900">
@@ -93,7 +93,7 @@ export default function OrdersView({ orders, onRefresh }: OrdersViewProps) {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white border-2 border-slate-900 overflow-hidden shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
+      <div className="bg-white border-2 border-slate-900 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-900">
             <thead className="bg-slate-900 text-white font-black uppercase tracking-wider">
@@ -180,7 +180,7 @@ export default function OrdersView({ orders, onRefresh }: OrdersViewProps) {
                         <div className="flex items-center justify-center space-x-1">
                           <button
                             onClick={() => setSelectedOrder(order)}
-                            className="p-1.5 bg-orange-500 hover:bg-orange-600 text-white border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] transition"
+                            className="p-1.5 bg-orange-500 hover:bg-orange-600 text-white border-2 border-slate-900 transition"
                             title="Ver / Imprimir Ticket"
                           >
                             <Printer className="w-4 h-4" />
@@ -188,7 +188,7 @@ export default function OrdersView({ orders, onRefresh }: OrdersViewProps) {
                           {order.kitchen_status !== 'cancelado' && order.kitchen_status !== 'entregado' && (
                             <button
                               onClick={() => handleUpdateStatus(order.id, 'cancelado')}
-                              className="p-1.5 bg-rose-600 hover:bg-rose-700 text-white border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] transition"
+                              className="p-1.5 bg-rose-600 hover:bg-rose-700 text-white border-2 border-slate-900 transition"
                               title="Cancelar Pedido"
                             >
                               <XCircle className="w-4 h-4" />

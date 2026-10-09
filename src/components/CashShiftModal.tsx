@@ -84,7 +84,7 @@ export default function CashShiftModal({ shiftData, onClose, onRefresh }: CashSh
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-white border-4 border-slate-900 shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col">
+      <div className="bg-white border-4 border-slate-900 w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col">
 
         {/* Modal Header */}
         <div className="bg-slate-900 p-4 flex items-center justify-between shrink-0">
@@ -134,7 +134,7 @@ export default function CashShiftModal({ shiftData, onClose, onRefresh }: CashSh
             <button
               onClick={handleOpenShift}
               disabled={loading}
-              className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm uppercase border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm uppercase border-2 border-slate-900 flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Unlock className="w-5 h-5" /> ABRIR TURNO DE CAJA
             </button>
@@ -181,7 +181,7 @@ export default function CashShiftModal({ shiftData, onClose, onRefresh }: CashSh
                     ))}
                   </div>
 
-                  <div className="p-4 bg-orange-500 border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)]">
+                  <div className="p-4 bg-orange-500 border-2 border-slate-900">
                     <p className="text-white/80 text-xs font-black uppercase">TOTAL EN CAJA (ESTIMADO)</p>
                     <p className="text-white text-3xl font-black">${totals.expected_cash?.toLocaleString('es-AR') ?? '0'}</p>
                   </div>
@@ -265,7 +265,7 @@ export default function CashShiftModal({ shiftData, onClose, onRefresh }: CashSh
                     <button
                       onClick={handleMovement}
                       disabled={loading}
-                      className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-black text-xs uppercase border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] flex items-center justify-center gap-2 disabled:opacity-50"
+                      className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-black text-xs uppercase border-2 border-slate-900 flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                       <ArrowRightLeft className="w-4 h-4" /> REGISTRAR MOVIMIENTO
                     </button>
@@ -277,7 +277,7 @@ export default function CashShiftModal({ shiftData, onClose, onRefresh }: CashSh
                     <button
                       onClick={handleCloseShift}
                       disabled={loading}
-                      className="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] flex items-center justify-center gap-2 disabled:opacity-50"
+                      className="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase border-2 border-slate-900 flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                       <Lock className="w-4 h-4" /> CERRAR TURNO DE CAJA
                     </button>

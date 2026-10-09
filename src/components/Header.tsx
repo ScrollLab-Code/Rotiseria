@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { 
   ShoppingBag, 
   ChefHat, 
@@ -22,7 +21,7 @@ export default function Header({ activeTab, setActiveTab, shiftData, onOpenCashM
   const isShiftOpen = !!shiftData?.activeShift;
 
   const tabs = [
-    { id: 'pos', label: 'Punta de Venta (POS)', icon: ShoppingBag },
+    { id: 'pos', label: 'Punto de Venta (POS)', icon: ShoppingBag },
     { id: 'kitchen', label: 'Cocina (KDS)', icon: ChefHat },
     { id: 'orders', label: 'Pedidos del Día', icon: ClipboardList },
     { id: 'cash', label: 'Caja & Arqueo', icon: Wallet },
@@ -31,7 +30,7 @@ export default function Header({ activeTab, setActiveTab, shiftData, onOpenCashM
   ];
 
   return (
-    <header className="bg-white text-slate-900 border-b-4 border-orange-500 sticky top-0 z-40 shadow-sm">
+    <header className="bg-white text-slate-900 border-b-2 border-slate-900 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo & Brand Image */}
@@ -49,7 +48,7 @@ export default function Header({ activeTab, setActiveTab, shiftData, onOpenCashM
             </div>
           </div>
 
-          {/* Navigation Tabs - Square Industrial Style */}
+          {/* Navigation Tabs - Clean Square Style */}
           <nav className="flex space-x-1 sm:space-x-2 overflow-x-auto py-2 no-scrollbar">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -58,9 +57,9 @@ export default function Header({ activeTab, setActiveTab, shiftData, onOpenCashM
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-4 py-2.5 rounded-none text-xs font-black uppercase tracking-wider transition-all border-2 ${
+                  className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all border-2 ${
                     isActive
-                      ? 'bg-orange-500 text-white border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)]'
+                      ? 'bg-orange-500 text-white border-slate-900'
                       : 'bg-white text-slate-700 border-slate-300 hover:bg-orange-50 hover:border-orange-500 hover:text-orange-600'
                   }`}
                 >
@@ -75,10 +74,10 @@ export default function Header({ activeTab, setActiveTab, shiftData, onOpenCashM
           <div className="flex items-center space-x-3">
             <button
               onClick={onOpenCashModal}
-              className={`flex items-center space-x-2 px-3.5 py-2 rounded-none text-xs font-black uppercase tracking-wider border-2 transition-all ${
+              className={`flex items-center space-x-2 px-3.5 py-2 text-xs font-black uppercase tracking-wider border-2 transition-all ${
                 isShiftOpen
-                  ? 'bg-emerald-50 border-emerald-600 text-emerald-800 shadow-[2px_2px_0px_0px_rgba(5,150,105,1)] hover:bg-emerald-100'
-                  : 'bg-rose-50 border-rose-600 text-rose-800 shadow-[2px_2px_0px_0px_rgba(225,29,72,1)] hover:bg-rose-100'
+                  ? 'bg-emerald-50 border-emerald-600 text-emerald-800 hover:bg-emerald-100'
+                  : 'bg-rose-50 border-rose-600 text-rose-800 hover:bg-rose-100'
               }`}
             >
               <span className={`w-2.5 h-2.5 ${isShiftOpen ? 'bg-emerald-600 animate-pulse' : 'bg-rose-600'}`} />

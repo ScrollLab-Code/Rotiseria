@@ -28,7 +28,7 @@ export default function TicketModal({ order, onClose, mode = 'ticket' }: TicketM
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="bg-slate-900 text-slate-100 max-w-md w-full border-4 border-slate-700 shadow-[8px_8px_0px_0px_rgba(249,115,22,1)] overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-slate-900 text-slate-100 max-w-md w-full border-4 border-slate-700 overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header toolbar */}
         <div className="p-4 bg-slate-800 flex items-center justify-between border-b-2 border-slate-700">
           <div className="flex items-center space-x-2">

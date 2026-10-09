@@ -42,7 +42,7 @@ export default function KitchenView({ orders, onRefresh }: KitchenViewProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white p-4 border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white p-4 border-2 border-slate-900 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
           <div className="p-3 bg-orange-500 text-white border-2 border-slate-900">
             <ChefHat className="w-6 h-6" />
@@ -77,7 +77,7 @@ export default function KitchenView({ orders, onRefresh }: KitchenViewProps) {
 
           <button
             onClick={onRefresh}
-            className="p-2.5 bg-slate-900 text-white border-2 border-slate-900 hover:bg-slate-700 transition shadow-[2px_2px_0px_0px_rgba(249,115,22,1)]"
+            className="p-2.5 bg-slate-900 text-white border-2 border-slate-900 hover:bg-slate-700 transition"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
@@ -114,7 +114,7 @@ export default function KitchenView({ orders, onRefresh }: KitchenViewProps) {
             return (
               <div
                 key={order.id}
-                className={`bg-white border-2 border-slate-900 ${leftBorder} shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex flex-col justify-between space-y-4 overflow-hidden`}
+                className={`bg-white border-2 border-slate-900 ${leftBorder} flex flex-col justify-between space-y-4 overflow-hidden`}
               >
                 {/* Card Header */}
                 <div className="p-4">

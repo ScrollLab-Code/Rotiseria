@@ -78,10 +78,10 @@ export default function Home() {
   if (loading && products.length === 0) {
     return (
       <div className="min-h-screen bg-orange-50/30 text-slate-900 flex flex-col items-center justify-center space-y-4">
-        <div className="w-16 h-16 bg-orange-500 border-4 border-slate-900 flex items-center justify-center text-3xl animate-bounce shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
+        <div className="w-16 h-16 bg-orange-500 border-4 border-slate-900 flex items-center justify-center text-3xl animate-bounce">
           🍗
         </div>
-        <div className="text-sm font-black uppercase tracking-widest text-orange-600 border-2 border-slate-900 px-4 py-2 bg-white shadow-[3px_3px_0px_0px_rgba(15,23,42,1)]">CARGANDO SISTEMA EMPANADAS PICÚN...</div>
+        <div className="text-sm font-black uppercase tracking-widest text-orange-600 border-2 border-slate-900 px-4 py-2 bg-white">CARGANDO SISTEMA EMPANADAS PICÚN...</div>
       </div>
     );
   }
@@ -122,14 +122,14 @@ export default function Home() {
         )}
 
         {activeTab === 'cash' && (
-          <div className="bg-white p-6 border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] space-y-4">
+          <div className="bg-white p-6 border-2 border-slate-900 space-y-4">
             <h2 className="text-xl font-black uppercase text-slate-900 tracking-wider">ARQUEO Y CONTROL DE CAJA</h2>
             <p className="text-xs text-slate-500 font-bold uppercase">
               GESTIONE LA APERTURA, CIERRE, MONTOS INICIALES E INGRESOS/EGRESOS ADICIONALES DE EFECTIVO.
             </p>
             <button
               onClick={() => setIsCashModalOpen(true)}
-              className="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white border-2 border-slate-900 font-black text-xs uppercase shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] transition"
+              className="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white border-2 border-slate-900 font-black text-xs uppercase transition"
             >
               ABRIR PANEL DE CONTROL DE CAJA
             </button>

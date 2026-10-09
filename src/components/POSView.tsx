@@ -203,7 +203,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
       {/* LEFT SECTION: McDonald's Kiosk Style Product Grid (7 cols) */}
       <div className="lg:col-span-7 flex flex-col space-y-4">
         {/* Search & Category Filter Header (Square) */}
-        <div className="bg-white p-4 rounded-none border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] space-y-3">
+        <div className="bg-white p-4 rounded-none border-2 border-slate-900 space-y-3">
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-orange-600" />
             <input
@@ -221,7 +221,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
               onClick={() => setSelectedCategory('all')}
               className={`px-4 py-2 rounded-none text-xs font-black uppercase tracking-wider transition-all border-2 ${
                 selectedCategory === 'all'
-                  ? 'bg-orange-500 text-white border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
+                  ? 'bg-orange-500 text-white border-slate-900'
                   : 'bg-white text-slate-800 border-slate-300 hover:bg-orange-50 hover:border-orange-500'
               }`}
             >
@@ -233,7 +233,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`px-4 py-2 rounded-none text-xs font-black uppercase tracking-wider transition-all border-2 ${
                   selectedCategory === cat.id
-                    ? 'bg-orange-500 text-white border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
+                    ? 'bg-orange-500 text-white border-slate-900'
                     : 'bg-white text-slate-800 border-slate-300 hover:bg-orange-50 hover:border-orange-500'
                 }`}
               >
@@ -253,7 +253,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
               <div
                 key={product.id}
                 onClick={() => addToCart(product)}
-                className="bg-white border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] hover:shadow-[6px_6px_0px_0px_rgba(249,115,22,1)] transition-all cursor-pointer flex flex-col justify-between group overflow-hidden"
+                className="bg-white border-2 border-slate-900 hover:border-orange-500 transition-all cursor-pointer flex flex-col justify-between group overflow-hidden"
               >
                 {/* Product Photo (McDonald's Kiosk Banner) */}
                 <div className="relative w-full h-32 bg-slate-100 border-b-2 border-slate-900 overflow-hidden">
@@ -269,11 +269,11 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
                   {/* Badge unit type */}
                   <div className="absolute top-2 right-2">
                     {product.unit_type === 'kilo' ? (
-                      <span className="bg-purple-600 text-white text-[10px] font-black uppercase px-2 py-0.5 border border-slate-900 flex items-center gap-1 shadow-sm">
+                      <span className="bg-purple-600 text-white text-[10px] font-black uppercase px-2 py-0.5 border border-slate-900 flex items-center gap-1">
                         <Scale className="w-3 h-3" /> POR KILO
                       </span>
                     ) : (
-                      <span className="bg-slate-900 text-white text-[10px] font-black uppercase px-2 py-0.5 border border-slate-900 shadow-sm">
+                      <span className="bg-slate-900 text-white text-[10px] font-black uppercase px-2 py-0.5 border border-slate-900">
                         {product.unit_type}
                       </span>
                     )}
@@ -301,7 +301,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
                         e.stopPropagation();
                         addToCart(product);
                       }}
-                      className="bg-orange-500 group-hover:bg-orange-600 text-white border border-slate-900 px-2.5 py-1 text-[11px] font-black uppercase flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
+                      className="bg-orange-500 group-hover:bg-orange-600 text-white border border-slate-900 px-2.5 py-1 text-[11px] font-black uppercase flex items-center gap-1"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>AGREGAR</span>
@@ -315,7 +315,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
       </div>
 
       {/* RIGHT SECTION: Cart & Checkout (5 cols - Square Industrial Theme) */}
-      <div className="lg:col-span-5 bg-white rounded-none border-2 border-slate-900 p-5 flex flex-col justify-between shadow-[6px_6px_0px_0px_rgba(15,23,42,1)]">
+      <div className="lg:col-span-5 bg-white rounded-none border-2 border-slate-900 p-5 flex flex-col justify-between">
         <div className="space-y-4">
           {/* Order Header & Square Type Selector */}
           <div className="flex items-center justify-between border-b-2 border-slate-900 pb-3">
@@ -328,7 +328,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
                 onClick={() => setOrderType('mostrador')}
                 className={`px-3 py-1.5 uppercase transition ${
                   orderType === 'mostrador'
-                    ? 'bg-orange-500 text-white border border-slate-900 shadow-sm'
+                    ? 'bg-orange-500 text-white border border-slate-900'
                     : 'text-slate-700 hover:text-slate-900'
                 }`}
               >
@@ -338,7 +338,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
                 onClick={() => setOrderType('retiro')}
                 className={`px-3 py-1.5 uppercase transition ${
                   orderType === 'retiro'
-                    ? 'bg-orange-500 text-white border border-slate-900 shadow-sm'
+                    ? 'bg-orange-500 text-white border border-slate-900'
                     : 'text-slate-700 hover:text-slate-900'
                 }`}
               >
@@ -348,7 +348,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
                 onClick={() => setOrderType('delivery')}
                 className={`px-3 py-1.5 uppercase transition ${
                   orderType === 'delivery'
-                    ? 'bg-orange-500 text-white border border-slate-900 shadow-sm'
+                    ? 'bg-orange-500 text-white border border-slate-900'
                     : 'text-slate-700 hover:text-slate-900'
                 }`}
               >
@@ -410,7 +410,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
               cart.map((item, index) => (
                 <div
                   key={index}
-                  className="bg-white p-3 border-2 border-slate-900 flex items-center justify-between space-x-2 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
+                  className="bg-white p-3 border-2 border-slate-900 flex items-center justify-between space-x-2 text-xs font-bold"
                 >
                   <div className="flex-1">
                     <div className="flex items-center justify-between text-slate-900 uppercase">
@@ -479,7 +479,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
                 onClick={() => setPaymentMethod('efectivo')}
                 className={`py-2 px-3 border-2 uppercase flex items-center justify-center gap-1.5 transition ${
                   paymentMethod === 'efectivo'
-                    ? 'bg-emerald-600 text-white border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
+                    ? 'bg-emerald-600 text-white border-slate-900'
                     : 'bg-white text-slate-700 border-slate-300 hover:bg-orange-50'
                 }`}
               >
@@ -489,7 +489,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
                 onClick={() => setPaymentMethod('mercadopago')}
                 className={`py-2 px-3 border-2 uppercase flex items-center justify-center gap-1.5 transition ${
                   paymentMethod === 'mercadopago'
-                    ? 'bg-sky-600 text-white border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
+                    ? 'bg-sky-600 text-white border-slate-900'
                     : 'bg-white text-slate-700 border-slate-300 hover:bg-orange-50'
                 }`}
               >
@@ -499,7 +499,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
                 onClick={() => setPaymentMethod('tarjeta')}
                 className={`py-2 px-3 border-2 uppercase flex items-center justify-center gap-1.5 transition ${
                   paymentMethod === 'tarjeta'
-                    ? 'bg-purple-600 text-white border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
+                    ? 'bg-purple-600 text-white border-slate-900'
                     : 'bg-white text-slate-700 border-slate-300 hover:bg-orange-50'
                 }`}
               >
@@ -546,10 +546,10 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
             <button
               onClick={handleSubmitOrder}
               disabled={cart.length === 0 || isSubmitting}
-              className={`w-full py-4 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] transition-all ${
+              className={`w-full py-4 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 border-2 border-slate-900 transition-all ${
                 cart.length > 0 && !isSubmitting
-                  ? 'bg-orange-500 hover:bg-orange-600 text-white active:translate-x-0.5 active:translate-y-0.5'
-                  : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none border-slate-300'
+                  ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                  : 'bg-slate-200 text-slate-400 cursor-not-allowed border-slate-300'
               }`}
             >
               <CheckCircle2 className="w-5 h-5" />
@@ -562,7 +562,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
       {/* WEIGHT MODAL (Square) */}
       {weightModalItem && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border-4 border-slate-900 p-6 max-w-sm w-full space-y-4 shadow-[8px_8px_0px_0px_rgba(15,23,42,1)]">
+          <div className="bg-white border-4 border-slate-900 p-6 max-w-sm w-full space-y-4">
             <div className="flex items-center space-x-3 border-b-2 border-slate-900 pb-3">
               <div className="p-3 bg-orange-500 text-white border-2 border-slate-900">
                 <Scale className="w-6 h-6" />
@@ -609,7 +609,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
               </button>
               <button
                 onClick={handleAddWeightItem}
-                className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-black border-2 border-slate-900 text-xs uppercase shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
+                className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-black border-2 border-slate-900 text-xs uppercase"
               >
                 AGREGAR
               </button>
@@ -621,7 +621,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
       {/* ITEM NOTES MODAL */}
       {editingNotesIndex !== null && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border-4 border-slate-900 p-5 max-w-sm w-full space-y-3 shadow-[8px_8px_0px_0px_rgba(15,23,42,1)]">
+          <div className="bg-white border-4 border-slate-900 p-5 max-w-sm w-full space-y-3">
             <h3 className="font-black text-slate-900 text-xs uppercase">NOTA DE PREPARACIÓN</h3>
             <input
               type="text"
@@ -639,7 +639,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
               </button>
               <button
                 onClick={saveItemNotes}
-                className="flex-1 py-2 bg-orange-500 hover:bg-orange-600 text-white font-black border-2 border-slate-900 text-xs uppercase shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
+                className="flex-1 py-2 bg-orange-500 hover:bg-orange-600 text-white font-black border-2 border-slate-900 text-xs uppercase"
               >
                 GUARDAR
               </button>

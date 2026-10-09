@@ -135,7 +135,7 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
   return (
     <div className="space-y-6">
       {/* Top Header & Search Bar (Square Industrial) */}
-      <div className="bg-white p-4 border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-white p-4 border-2 border-slate-900 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center space-x-3">
           <div className="p-3 bg-orange-500 text-white border-2 border-slate-900">
             <UtensilsCrossed className="w-6 h-6" />
@@ -160,7 +160,7 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
 
           <button
             onClick={openNewProductModal}
-            className="flex items-center space-x-1 bg-orange-500 hover:bg-orange-600 text-white text-xs px-4 py-2 font-black uppercase border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
+            className="flex items-center space-x-1 bg-orange-500 hover:bg-orange-600 text-white text-xs px-4 py-2 font-black uppercase border-2 border-slate-900"
           >
             <Plus className="w-4 h-4" />
             <span>NUEVO PLATO</span>
@@ -174,7 +174,7 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
           onClick={() => setSelectedCat('all')}
           className={`px-4 py-2 text-xs font-black uppercase tracking-wider border-2 transition ${
             selectedCat === 'all'
-              ? 'bg-orange-500 text-white border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
+              ? 'bg-orange-500 text-white border-slate-900'
               : 'bg-white text-slate-800 border-slate-300 hover:bg-orange-50'
           }`}
         >
@@ -186,7 +186,7 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
             onClick={() => setSelectedCat(c.id)}
             className={`px-4 py-2 text-xs font-black uppercase tracking-wider border-2 transition ${
               selectedCat === c.id
-                ? 'bg-orange-500 text-white border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
+                ? 'bg-orange-500 text-white border-slate-900'
                 : 'bg-white text-slate-800 border-slate-300 hover:bg-orange-50'
             }`}
           >
@@ -196,7 +196,7 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
       </div>
 
       {/* Products Table with Photo Thumbnails (McDonald's style) */}
-      <div className="bg-white border-2 border-slate-900 overflow-hidden shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
+      <div className="bg-white border-2 border-slate-900 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-900">
             <thead className="bg-slate-900 text-white font-black uppercase tracking-wider">
@@ -264,7 +264,7 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
                     <td className="px-4 py-2.5 text-center">
                       <button
                         onClick={() => openEditProductModal(product)}
-                        className="p-1.5 bg-orange-500 hover:bg-orange-600 text-white border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
+                        className="p-1.5 bg-orange-500 hover:bg-orange-600 text-white border-2 border-slate-900"
                         title="Editar Plato"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -281,7 +281,7 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
       {/* NEW / EDIT PRODUCT MODAL (Square Industrial) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="bg-white border-4 border-slate-900 p-6 max-w-md w-full shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] space-y-4">
+          <div className="bg-white border-4 border-slate-900 p-6 max-w-md w-full space-y-4">
             <h3 className="font-black text-slate-900 text-base uppercase border-b-2 border-slate-900 pb-2">
               {editingProduct ? 'EDITAR PLATO' : 'AGREGAR NUEVO PLATO'}
             </h3>
@@ -375,7 +375,7 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
               <button
                 onClick={handleSaveProduct}
                 disabled={isLoading}
-                className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-black border-2 border-slate-900 text-xs uppercase shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
+                className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-black border-2 border-slate-900 text-xs uppercase"
               >
                 {isLoading ? 'GUARDANDO...' : 'GUARDAR'}
               </button>

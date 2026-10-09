@@ -59,7 +59,7 @@ export default function ReportsView({ onRefresh }: ReportsViewProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white p-4 border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white p-4 border-2 border-slate-900 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
           <div className="p-3 bg-orange-500 text-white border-2 border-slate-900">
             <BarChart3 className="w-6 h-6" />
@@ -134,7 +134,7 @@ export default function ReportsView({ onRefresh }: ReportsViewProps) {
             ].map((kpi) => (
               <div
                 key={kpi.label}
-                className={`bg-white p-4 border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] space-y-2`}
+                className={`bg-white p-4 border-2 border-slate-900 space-y-2`}
               >
                 <div className={`p-2 inline-flex border-2 border-slate-900 text-white ${
                   kpi.color === 'orange' ? 'bg-orange-500' :
@@ -155,7 +155,7 @@ export default function ReportsView({ onRefresh }: ReportsViewProps) {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Top Products */}
-            <div className="bg-white border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] overflow-hidden">
+            <div className="bg-white border-2 border-slate-900 overflow-hidden">
               <div className="bg-slate-900 px-4 py-3 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-orange-400" />
                 <p className="text-white font-black text-xs uppercase">PRODUCTOS MÁS VENDIDOS</p>
@@ -196,7 +196,29 @@ export default function ReportsView({ onRefresh }: ReportsViewProps) {
             {/* Payment Methods + Order Types */}
             <div className="space-y-4">
               {/* By Payment */}
-              <div className="bg-white border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] overflow-hidden">
+              <div className="bg-white border-2 border-slate-900 overflow-hidden">
+                <div className="bg-slate-900 px-4 py-3 flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-orange-400" />
+                  <p className="text-white font-black text-xs uppercase">VENTAS POR MEDIO DE PAGO</p>
+                </div>
+                <div className="p-4 space-y-2">
+                  {(reportData.by_payment_method || []).map((m, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-2.5 bg-slate-50 border-2 border-slate-200">
+                      <span className="font-black uppercase text-slate-900 text-xs">{m.payment_method}</span>
+                      <div className="text-right">
+                        <div className="font-black text-slate-900 text-sm">${m.total?.toLocaleString('es-AR')}</div>
+                        <div className="text-[10px] text-slate-500 font-bold">{m.count} PEDIDOS</div>
+                      </div>
+                    </div>
+                  ))}
+                  {(reportData.by_payment_method || []).length === 0 && (
+                    <p className="text-center text-slate-400 text-xs font-black uppercase py-4">SIN DATOS</p>
+                  )}
+                </div>
+              </div>
+
+              {/* By Order Type */}
+              <div className="bg-white border-2 border-slate-900 overflow-hidden">
                 <div className="bg-slate-900 px-4 py-3 flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-orange-400" />
                   <p className="text-white font-black text-xs uppercase">VENTAS POR MEDIO DE PAGO</p>
