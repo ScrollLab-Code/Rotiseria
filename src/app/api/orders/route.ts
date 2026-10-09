@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, runInTransaction } from '@/lib/db';
 
 export async function GET(req: NextRequest) {
   try {
@@ -99,8 +99,7 @@ export async function POST(req: NextRequest) {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    // Execute transaction
-    const transaction = db.transaction(() => {
+    const createdOrderId = runInTransaction(() => {
       const result = insertOrder.run(
         nextOrderNum,
         order_type,
@@ -118,7 +117,7 @@ export async function POST(req: NextRequest) {
         shiftId
       );
 
-      const orderId = result.lastInsertRowid as number;
+      const orderId = result.lastInsertRowid;
 
       for (const item of items) {
         insertItem.run(
@@ -135,8 +134,6 @@ export async function POST(req: NextRequest) {
 
       return orderId;
     });
-
-    const createdOrderId = transaction();
 
     // Fetch full order
     const createdOrder = db.prepare('SELECT * FROM orders WHERE id = ?').get(createdOrderId) as any;

@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3';
+import { DatabaseSync } from 'node:sqlite';
 import path from 'path';
 import fs from 'fs';
 
@@ -11,17 +11,30 @@ if (!fs.existsSync(dataDir)) {
 }
 
 // Global sqlite singleton for Next.js hot reload
-const globalForDb = global as unknown as { db?: Database.Database };
+const globalForDb = global as typeof globalThis & { db?: DatabaseSync };
 
-export const db = globalForDb.db || new Database(dbPath);
+export const db = globalForDb.db || new DatabaseSync(dbPath);
 
 if (process.env.NODE_ENV !== 'production') {
   globalForDb.db = db;
 }
 
+export function runInTransaction<T>(callback: () => T): T {
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    const result = callback();
+    db.exec('COMMIT');
+    return result;
+  } catch (error) {
+    db.exec('ROLLBACK');
+    throw error;
+  }
+}
+
 // Initialize tables & seed data
 export function initDb() {
-  db.pragma('journal_mode = WAL');
+  db.exec('PRAGMA busy_timeout = 5000');
+  db.exec('PRAGMA journal_mode = WAL');
 
   // Categories Table
   db.exec(`
@@ -104,7 +117,7 @@ export function initDb() {
   // Ensure image_url column exists in products table
   try {
     db.exec(`ALTER TABLE products ADD COLUMN image_url TEXT;`);
-  } catch (e) {
+  } catch {
     // Column already exists
   }
 
