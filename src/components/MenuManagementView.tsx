@@ -1,21 +1,24 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { UtensilsCrossed, Plus, Edit2, Search, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
+import type { Category, Product, ProductUnit } from '@/lib/types';
 
 interface MenuManagementProps {
-  products: any[];
-  categories: any[];
+  products: Product[];
+  categories: Category[];
   onRefresh: () => void;
+  onCategoryCreated: (category: Category) => void;
 }
 
-export default function MenuManagementView({ products, categories, onRefresh }: MenuManagementProps) {
+export default function MenuManagementView({ products, categories, onRefresh, onCategoryCreated }: MenuManagementProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCat, setSelectedCat] = useState<number | 'all'>('all');
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<any | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   // Form Fields
   const [categoryId, setCategoryId] = useState<number>(categories[0]?.id || 1);
@@ -27,12 +30,10 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
   const [imageUrl, setImageUrl] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (categories.length > 0 && !categoryId) {
-      setCategoryId(categories[0].id);
-    }
-  }, [categories, categoryId]);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [categoryName, setCategoryName] = useState('');
+  const [categoryError, setCategoryError] = useState('');
+  const [isSavingCategory, setIsSavingCategory] = useState(false);
 
   const filteredProducts = products.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -52,7 +53,7 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
     setIsModalOpen(true);
   };
 
-  const openEditProductModal = (product: any) => {
+  const openEditProductModal = (product: Product) => {
     setEditingProduct(product);
     setCategoryId(product.category_id);
     setName(product.name);
@@ -64,7 +65,7 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
     setIsModalOpen(true);
   };
 
-  const handleToggleAvailability = async (product: any) => {
+  const handleToggleAvailability = async (product: Product) => {
     try {
       await fetch('/api/products', {
         method: 'PUT',
@@ -123,11 +124,46 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
 
       setIsModalOpen(false);
       onRefresh();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error saving product:', err);
       alert('Ocurrió un error al guardar el producto');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    const name = categoryName.trim();
+    if (!name) {
+      setCategoryError('Ingresá un nombre para la categoría.');
+      return;
+    }
+
+    setIsSavingCategory(true);
+    setCategoryError('');
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+      const data = await res.json() as Category | { error: string };
+      if (!res.ok) {
+        setCategoryError('error' in data ? data.error : 'No se pudo crear la categoría.');
+        return;
+      }
+
+      const category = data as Category;
+      onCategoryCreated(category);
+      setSelectedCat(category.id);
+      setCategoryId(category.id);
+      setCategoryName('');
+      setIsCategoryModalOpen(false);
+    } catch (error) {
+      console.error('Error creating category:', error);
+      setCategoryError('No se pudo conectar para crear la categoría.');
+    } finally {
+      setIsSavingCategory(false);
     }
   };
 
@@ -168,30 +204,43 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
       </div>
 
       {/* Category Tabs */}
-      <div className="flex space-x-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
-        <button
-          onClick={() => setSelectedCat('all')}
-          className={`px-3 py-1.5 font-medium transition-colors border ${
-            selectedCat === 'all'
-              ? 'bg-orange-500 text-white border-orange-600'
-              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-          }`}
-        >
-          Todos ({products.length})
-        </button>
-        {categories.map((c) => (
+      <div className="flex items-center gap-2">
+        <div className="flex flex-1 space-x-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
           <button
-            key={c.id}
-            onClick={() => setSelectedCat(c.id)}
+            onClick={() => setSelectedCat('all')}
             className={`px-3 py-1.5 font-medium transition-colors border whitespace-nowrap ${
-              selectedCat === c.id
+              selectedCat === 'all'
                 ? 'bg-orange-500 text-white border-orange-600'
                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
             }`}
           >
-            {c.name}
+            Todos ({products.length})
           </button>
-        ))}
+          {categories.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => setSelectedCat(c.id)}
+              className={`px-3 py-1.5 font-medium transition-colors border whitespace-nowrap ${
+                selectedCat === c.id
+                  ? 'bg-orange-500 text-white border-orange-600'
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => {
+            setCategoryName('');
+            setCategoryError('');
+            setIsCategoryModalOpen(true);
+          }}
+          className="flex shrink-0 items-center gap-1 border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-orange-400 hover:text-orange-600"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Nueva categoría
+        </button>
       </div>
 
       {/* Products Table with Photo Thumbnails */}
@@ -216,14 +265,14 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
                 return (
                   <tr key={product.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-3 py-1.5">
-                      <div className="w-9 h-9 bg-slate-100 border border-slate-200 overflow-hidden">
-                        <img
+                      <div className="relative w-9 h-9 bg-slate-100 border border-slate-200 overflow-hidden">
+                        <Image
                           src={product.image_url || defaultImg}
                           alt={product.name}
+                          fill
+                          unoptimized
                           className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = defaultImg;
-                          }}
+                          onError={(e) => { e.currentTarget.src = defaultImg; }}
                         />
                       </div>
                     </td>
@@ -278,6 +327,54 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
       </div>
 
       {/* NEW / EDIT PRODUCT MODAL */}
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+          <div className="w-full max-w-sm space-y-3 border border-slate-300 bg-white p-5">
+            <h3 className="border-b border-slate-200 pb-2 text-sm font-semibold text-slate-900">
+              Nueva categoría
+            </h3>
+            <div>
+              <label htmlFor="new-category-name" className="mb-1 block text-xs font-semibold text-slate-700">
+                Nombre
+              </label>
+              <input
+                id="new-category-name"
+                autoFocus
+                maxLength={60}
+                value={categoryName}
+                onChange={(event) => setCategoryName(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') void handleCreateCategory();
+                }}
+                placeholder="Ej: Bebidas"
+                className="w-full border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:border-orange-500 focus:outline-none"
+              />
+            </div>
+            {categoryError && (
+              <p role="alert" className="border-l-2 border-rose-500 bg-rose-50 p-2 text-xs font-medium text-rose-700">
+                {categoryError}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsCategoryModalOpen(false)}
+                disabled={isSavingCategory}
+                className="flex-1 border border-slate-200 bg-slate-100 py-2 text-xs font-medium text-slate-700 hover:bg-slate-200 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => void handleCreateCategory()}
+                disabled={isSavingCategory}
+                className="flex-1 border border-orange-600 bg-orange-500 py-2 text-xs font-semibold text-white hover:bg-orange-600 disabled:opacity-50"
+              >
+                {isSavingCategory ? 'Guardando...' : 'Crear categoría'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
           <div className="bg-white border border-slate-300 p-5 max-w-sm w-full space-y-3">
@@ -353,7 +450,7 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
                   <label className="text-slate-700 block mb-0.5 font-semibold">Modo de Venta</label>
                   <select
                     value={unitType}
-                    onChange={(e) => setUnitType(e.target.value as any)}
+                    onChange={(e) => setUnitType(e.target.value as ProductUnit)}
                     className="w-full bg-slate-50 border border-slate-200 py-1.5 px-2 text-slate-900 font-medium focus:outline-none focus:border-orange-500"
                   >
                     <option value="unidad">Por Unidad</option>

@@ -3,15 +3,16 @@
 import React, { useState } from 'react';
 import { ChefHat, Clock, CheckCircle2, Flame, Bike, ShoppingBag, Package, RefreshCw, Printer } from 'lucide-react';
 import TicketModal from './TicketModal';
+import type { Order, OrderItem, KitchenStatus } from '@/lib/types';
 
 interface KitchenViewProps {
-  orders: any[];
+  orders: Order[];
   onRefresh: () => void;
 }
 
 export default function KitchenView({ orders, onRefresh }: KitchenViewProps) {
   const [selectedStatus, setSelectedStatus] = useState<string>('activos');
-  const [selectedTicketOrder, setSelectedTicketOrder] = useState<any | null>(null);
+  const [selectedTicketOrder, setSelectedTicketOrder] = useState<Order | null>(null);
 
   const activeOrders = orders.filter((o) => o.kitchen_status !== 'entregado' && o.kitchen_status !== 'cancelado');
   const filteredOrders = orders.filter((o) => {
@@ -20,7 +21,7 @@ export default function KitchenView({ orders, onRefresh }: KitchenViewProps) {
     return o.kitchen_status === selectedStatus;
   });
 
-  const handleUpdateStatus = async (orderId: number, newStatus: string) => {
+  const handleUpdateStatus = async (orderId: number, newStatus: KitchenStatus) => {
     try {
       await fetch('/api/orders', {
         method: 'PATCH',
@@ -172,7 +173,7 @@ export default function KitchenView({ orders, onRefresh }: KitchenViewProps) {
                   {/* Items */}
                   <div className="mt-3 space-y-1.5">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Items a preparar:</p>
-                    {order.items?.map((item: any, idx: number) => (
+                    {order.items?.map((item: OrderItem, idx: number) => (
                       <div key={idx} className="bg-slate-50 p-2 border border-slate-100 text-xs">
                         <div className="flex items-center font-bold text-slate-900">
                           <span className="text-orange-600 font-extrabold text-xs mr-2 min-w-[36px]">

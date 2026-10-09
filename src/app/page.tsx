@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from '@/components/Header';
 import POSView from '@/components/POSView';
 import KitchenView from '@/components/KitchenView';
@@ -8,72 +8,101 @@ import OrdersView from '@/components/OrdersView';
 import CashShiftModal from '@/components/CashShiftModal';
 import MenuManagementView from '@/components/MenuManagementView';
 import ReportsView from '@/components/ReportsView';
+import type { CashShiftData, Category, Order, Product } from '@/lib/types';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<string>('pos');
   
   // Data state
-  const [products, setProducts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [shiftData, setShiftData] = useState<any>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [shiftData, setShiftData] = useState<CashShiftData | null>(null);
   
   // Modals state
   const [isCashModalOpen, setIsCashModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Initial load
-  useEffect(() => {
-    loadAllData();
+  const fetchProducts = useCallback(async (): Promise<Product[]> => {
+    const res = await fetch('/api/products');
+    if (!res.ok) throw new Error('No se pudieron cargar los productos');
+    return await res.json() as Product[];
   }, []);
 
-  const loadAllData = async () => {
+  const fetchCategories = useCallback(async (): Promise<Category[]> => {
+    const res = await fetch('/api/categories');
+    if (!res.ok) throw new Error('No se pudieron cargar las categorías');
+    return await res.json() as Category[];
+  }, []);
+
+  const fetchOrders = useCallback(async (): Promise<Order[]> => {
+    const res = await fetch('/api/orders?date=today');
+    if (!res.ok) throw new Error('No se pudieron cargar los pedidos');
+    return await res.json() as Order[];
+  }, []);
+
+  const fetchShiftData = useCallback(async (): Promise<CashShiftData> => {
+    const res = await fetch('/api/cash-shift');
+    if (!res.ok) throw new Error('No se pudo cargar la caja');
+    return await res.json() as CashShiftData;
+  }, []);
+
+  const refreshProducts = useCallback(async () => {
+    setProducts(await fetchProducts());
+  }, [fetchProducts]);
+
+  const refreshOrders = useCallback(async () => {
+    setOrders(await fetchOrders());
+  }, [fetchOrders]);
+
+  const loadAllData = useCallback(async () => {
     setLoading(true);
     try {
-      await Promise.all([
+      const [nextProducts, nextCategories, nextOrders, nextShiftData] = await Promise.all([
         fetchProducts(),
         fetchCategories(),
         fetchOrders(),
         fetchShiftData(),
       ]);
+      setProducts(nextProducts);
+      setCategories(nextCategories);
+      setOrders(nextOrders);
+      setShiftData(nextShiftData);
     } catch (err) {
       console.error('Error loading application data:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchCategories, fetchOrders, fetchProducts, fetchShiftData]);
 
-  const fetchProducts = async () => {
-    const res = await fetch('/api/products');
-    if (res.ok) {
-      const data = await res.json();
-      setProducts(data);
-    }
-  };
+  useEffect(() => {
+    let isMounted = true;
+    const loadInitialData = async () => {
+      try {
+        const [nextProducts, nextCategories, nextOrders, nextShiftData] = await Promise.all([
+          fetchProducts(),
+          fetchCategories(),
+          fetchOrders(),
+          fetchShiftData(),
+        ]);
+        if (isMounted) {
+          setProducts(nextProducts);
+          setCategories(nextCategories);
+          setOrders(nextOrders);
+          setShiftData(nextShiftData);
+        }
+      } catch (err) {
+        console.error('Error loading application data:', err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
 
-  const fetchCategories = async () => {
-    const res = await fetch('/api/categories');
-    if (res.ok) {
-      const data = await res.json();
-      setCategories(data);
-    }
-  };
-
-  const fetchOrders = async () => {
-    const res = await fetch('/api/orders?date=today');
-    if (res.ok) {
-      const data = await res.json();
-      setOrders(data);
-    }
-  };
-
-  const fetchShiftData = async () => {
-    const res = await fetch('/api/cash-shift');
-    if (res.ok) {
-      const data = await res.json();
-      setShiftData(data);
-    }
-  };
+    void loadInitialData();
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchCategories, fetchOrders, fetchProducts, fetchShiftData]);
 
   if (loading && products.length === 0) {
     return (
@@ -105,14 +134,13 @@ export default function Home() {
             products={products}
             categories={categories}
             onOrderCreated={loadAllData}
-            shiftData={shiftData}
           />
         )}
 
         {activeTab === 'kitchen' && (
           <KitchenView
             orders={orders}
-            onRefresh={fetchOrders}
+            onRefresh={refreshOrders}
           />
         )}
 
@@ -142,7 +170,8 @@ export default function Home() {
           <MenuManagementView
             products={products}
             categories={categories}
-            onRefresh={fetchProducts}
+            onRefresh={refreshProducts}
+            onCategoryCreated={(category) => setCategories((current) => [...current, category])}
           />
         )}
 

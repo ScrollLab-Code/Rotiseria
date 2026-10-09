@@ -3,9 +3,10 @@
 import React, { useState } from 'react';
 import { ClipboardList, Search, Printer, XCircle, Bike, ShoppingBag, Package } from 'lucide-react';
 import TicketModal from './TicketModal';
+import type { Order, KitchenStatus } from '@/lib/types';
 
 interface OrdersViewProps {
-  orders: any[];
+  orders: Order[];
   onRefresh: () => void;
 }
 
@@ -13,7 +14,7 @@ export default function OrdersView({ orders, onRefresh }: OrdersViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [orderTypeFilter, setOrderTypeFilter] = useState<string>('todos');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
-  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const filteredOrders = orders.filter((o) => {
     const matchesSearch =
@@ -25,7 +26,7 @@ export default function OrdersView({ orders, onRefresh }: OrdersViewProps) {
     return matchesSearch && matchesType && matchesStatus;
   });
 
-  const handleUpdateStatus = async (id: number, kitchen_status: string) => {
+  const handleUpdateStatus = async (id: number, kitchen_status: KitchenStatus) => {
     try {
       await fetch('/api/orders', {
         method: 'PATCH',

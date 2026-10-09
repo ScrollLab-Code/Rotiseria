@@ -2,11 +2,12 @@
 
 import React, { useState } from 'react';
 import { X, DollarSign, TrendingUp, TrendingDown, Lock, Unlock, ArrowRightLeft, AlertTriangle } from 'lucide-react';
+import type { CashMovement, CashShiftData } from '@/lib/types';
 
 interface CashShiftModalProps {
-  shiftData: any;
+  shiftData: CashShiftData | null;
   onClose: () => void;
-  onRefresh: () => void;
+  onRefresh: () => void | Promise<void>;
 }
 
 export default function CashShiftModal({ shiftData, onClose, onRefresh }: CashShiftModalProps) {
@@ -15,10 +16,11 @@ export default function CashShiftModal({ shiftData, onClose, onRefresh }: CashSh
   const [description, setDescription] = useState('');
   const [movementType, setMovementType] = useState<'entrada' | 'salida'>('entrada');
   const [initialCash, setInitialCash] = useState('');
+  const [finalCashCounted, setFinalCashCounted] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const hasShift = shiftData?.shift;
+  const hasShift = Boolean(shiftData?.activeShift);
 
   const handleOpenShift = async () => {
     const val = parseFloat(initialCash);
@@ -31,31 +33,38 @@ export default function CashShiftModal({ shiftData, onClose, onRefresh }: CashSh
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'open', initial_cash: val }),
       });
-      if (!res.ok) throw new Error('Error al abrir turno');
-      onRefresh();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al abrir turno');
+      await onRefresh();
       setInitialCash('');
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Error al abrir turno');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleCloseShift = async () => {
+    const val = parseFloat(finalCashCounted);
+    if (isNaN(val) || val < 0) { setError('Ingresá el monto contado para cerrar la caja'); return; }
     if (!confirm('¿Seguro que querés cerrar el turno de caja?')) return;
+    setError('');
     setLoading(true);
     try {
       const res = await fetch('/api/cash-shift', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'close' }),
+        body: JSON.stringify({ action: 'close', final_cash_counted: val }),
       });
-      if (!res.ok) throw new Error('Error al cerrar turno');
-      onRefresh();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al cerrar turno');
+      await onRefresh();
       onClose();
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Error al cerrar turno');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleMovement = async () => {
@@ -68,16 +77,23 @@ export default function CashShiftModal({ shiftData, onClose, onRefresh }: CashSh
       const res = await fetch('/api/cash-shift', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'movement', type: movementType, amount: val, description: description.trim() }),
+        body: JSON.stringify({
+          action: 'movement',
+          type: movementType === 'entrada' ? 'ingreso' : 'egreso',
+          amount: val,
+          concept: description.trim(),
+        }),
       });
-      if (!res.ok) throw new Error('Error al registrar movimiento');
-      onRefresh();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al registrar movimiento');
+      await onRefresh();
       setAmount('');
       setDescription('');
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Error al registrar movimiento');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const totals = shiftData?.totals;
@@ -164,10 +180,10 @@ export default function CashShiftModal({ shiftData, onClose, onRefresh }: CashSh
                     {[
                       { label: 'Caja Inicial', value: totals.initial_cash, color: 'slate' },
                       { label: 'Ventas Efectivo', value: totals.cash_sales, color: 'emerald' },
-                      { label: 'Ventas Tarjeta', value: totals.card_sales, color: 'sky' },
-                      { label: 'Ventas Transferencia', value: totals.transfer_sales, color: 'purple' },
-                      { label: 'Entradas Manuales', value: totals.manual_in, color: 'emerald' },
-                      { label: 'Salidas Manuales', value: totals.manual_out, color: 'rose' },
+                      { label: 'Ventas Mercado Pago', value: totals.mp_sales, color: 'sky' },
+                      { label: 'Ventas Tarjeta', value: totals.card_sales, color: 'purple' },
+                      { label: 'Entradas Manuales', value: totals.ingresos_extra, color: 'emerald' },
+                      { label: 'Salidas Manuales', value: totals.egresos_extra, color: 'rose' },
                     ].map((item) => (
                       <div key={item.label} className="p-2 border border-slate-200 bg-slate-50">
                         <p className="text-[10px] font-medium text-slate-500">{item.label}</p>
@@ -194,20 +210,20 @@ export default function CashShiftModal({ shiftData, onClose, onRefresh }: CashSh
                     </div>
                   ) : (
                     <div className="space-y-1.5">
-                      {shiftData.movements.map((m: any) => (
+                      {shiftData.movements.map((m: CashMovement) => (
                         <div key={m.id} className={`p-2 border ${
-                          m.type === 'entrada' ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50'
+                          m.type === 'ingreso' ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50'
                         } flex items-center justify-between text-xs`}>
                           <div>
-                            <p className="font-semibold text-slate-800">{m.description}</p>
+                            <p className="font-semibold text-slate-800">{m.concept}</p>
                             <p className="text-[10px] text-slate-400">
                               {new Date(m.created_at).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
                             </p>
                           </div>
                           <div className={`flex items-center gap-1 font-bold ${
-                            m.type === 'entrada' ? 'text-emerald-700' : 'text-rose-700'
+                            m.type === 'ingreso' ? 'text-emerald-700' : 'text-rose-700'
                           }`}>
-                            {m.type === 'entrada' ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                            {m.type === 'ingreso' ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
                             ${m.amount?.toLocaleString('es-AR')}
                           </div>
                         </div>
@@ -269,9 +285,23 @@ export default function CashShiftModal({ shiftData, onClose, onRefresh }: CashSh
                   {/* Close Shift */}
                   <div className="border-t border-dashed border-rose-200 pt-3 space-y-1.5">
                     <p className="font-semibold text-rose-600 text-[11px] uppercase tracking-wider">Cierre de caja</p>
+                    <label className="block text-[11px] font-medium text-slate-600" htmlFor="final-cash-counted">
+                      Efectivo contado ($)
+                    </label>
+                    <input
+                      id="final-cash-counted"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={finalCashCounted}
+                      onChange={(e) => setFinalCashCounted(e.target.value)}
+                      placeholder="Monto contado al cierre"
+                      className="w-full p-2 border border-slate-200 font-semibold text-slate-800 bg-slate-50 focus:outline-none focus:border-orange-500"
+                    />
+                    {error && <p className="text-rose-600 text-xs font-medium bg-rose-50 p-1.5 border-l-2 border-rose-500">{error}</p>}
                     <button
                       onClick={handleCloseShift}
-                      disabled={loading}
+                      disabled={loading || !finalCashCounted}
                       className="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs border border-rose-700 flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50"
                     >
                       <Lock className="w-3.5 h-3.5" /> Cerrar Turno de Caja

@@ -20,10 +20,6 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Production database
-
-Production uses PostgreSQL through Neon. In Vercel, add the Neon connection string as the `DATABASE_URL` environment variable for the Production environment, then redeploy. The application creates its tables and initial menu on the first connection. Keep the connection string private and do not commit it to this repository.
-
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

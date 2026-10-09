@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { 
   ShoppingBag, 
   ChefHat, 
@@ -9,11 +10,12 @@ import {
   UtensilsCrossed, 
   TrendingUp, 
 } from 'lucide-react';
+import type { CashShiftData } from '@/lib/types';
 
 interface HeaderProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  shiftData: any;
+  shiftData: CashShiftData | null;
   onOpenCashModal: () => void;
 }
 
@@ -36,9 +38,11 @@ export default function Header({ activeTab, setActiveTab, shiftData, onOpenCashM
           {/* Logo & Brand Image */}
           <div className="flex items-center space-x-2.5">
             <div className="h-9 w-auto bg-white p-0.5 border border-slate-200 flex items-center justify-center">
-              <img
+              <Image
                 src="/logo.png"
                 alt="Empanadas Picún Logo"
+                width={120}
+                height={32}
                 className="h-8 w-auto object-contain"
               />
             </div>

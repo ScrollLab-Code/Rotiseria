@@ -1,11 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { BarChart3, TrendingUp, ShoppingCart, Package, DollarSign, Loader2, FileText } from 'lucide-react';
-
-interface ReportsViewProps {
-  onRefresh?: () => void;
-}
 
 type Period = 'today' | 'week' | 'month';
 
@@ -20,34 +16,55 @@ interface ReportData {
   hourly_distribution?: { hour: string; orders: number; revenue: number }[];
 }
 
-export default function ReportsView({ onRefresh }: ReportsViewProps) {
+export default function ReportsView() {
   const [period, setPeriod] = useState<Period>('today');
   const [reportData, setReportData] = useState<ReportData | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [loaded, setLoaded] = useState(false);
 
-  const fetchReport = async (p: Period) => {
-    setLoading(true);
+  const fetchReport = useCallback(async (p: Period) => {
     try {
       const res = await fetch(`/api/reports?period=${p}`);
       if (!res.ok) throw new Error('Error al obtener datos');
-      const data = await res.json();
+      const data = await res.json() as ReportData;
       setReportData(data);
       setLoaded(true);
     } catch (e) {
       console.error(e);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
+  }, []);
 
   const handlePeriodChange = (p: Period) => {
     setPeriod(p);
-    fetchReport(p);
+    setLoading(true);
+    void fetchReport(p);
   };
 
   React.useEffect(() => {
-    fetchReport('today');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let isMounted = true;
+
+    const loadInitialReport = async () => {
+      try {
+        const res = await fetch('/api/reports?period=today');
+        if (!res.ok) throw new Error('Error al obtener datos');
+        const data = await res.json() as ReportData;
+        if (isMounted) {
+          setReportData(data);
+          setLoaded(true);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    void loadInitialReport();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const periodLabels: Record<Period, string> = {

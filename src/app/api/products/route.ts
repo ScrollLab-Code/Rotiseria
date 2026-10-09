@@ -30,14 +30,11 @@ export async function GET(req: NextRequest) {
 
     query += ' ORDER BY c.display_order ASC, p.name ASC';
 
-    const products = await db.prepare(query).all(...params);
+    const products = db.prepare(query).all(...params);
     return NextResponse.json(products);
   } catch (error) {
     console.error('Error fetching products:', error);
-    return NextResponse.json(
-      { error: process.env.DATABASE_URL ? 'No se pudo conectar a la base de datos. Verificá DATABASE_URL en Vercel.' : 'Falta configurar DATABASE_URL en Vercel para conectar la base de datos.' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error al obtener productos' }, { status: 500 });
   }
 }
 
@@ -62,23 +59,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const newProduct = await db.prepare(`
+    const stmt = db.prepare(`
       INSERT INTO products (category_id, name, description, price, unit_type, available, image_url)
       VALUES (?, ?, ?, ?, ?, ?, ?)
-      RETURNING id
-    `).get(parsedCatId, name, description, parsedPrice, unit_type, available, image_url);
+    `);
 
-    const product = await db
+    const result = stmt.run(parsedCatId, name, description, parsedPrice, unit_type, available, image_url);
+
+    const newProduct = db
       .prepare('SELECT p.*, c.name as category_name FROM products p JOIN categories c ON p.category_id = c.id WHERE p.id = ?')
-      .get(newProduct.id);
+      .get(result.lastInsertRowid);
 
-    return NextResponse.json(product, { status: 201 });
+    return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {
     console.error('Error creating product:', error);
-    return NextResponse.json(
-      { error: process.env.DATABASE_URL ? 'No se pudo conectar a la base de datos. Verificá DATABASE_URL en Vercel.' : 'Falta configurar DATABASE_URL en Vercel para conectar la base de datos.' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Error al crear producto' }, { status: 500 });
   }
 }
 
@@ -101,22 +96,21 @@ export async function PUT(req: NextRequest) {
     const parsedCatId = Number(rawCatId);
     const parsedPrice = Number(rawPrice);
 
-    await db.prepare(`
+    const stmt = db.prepare(`
       UPDATE products
       SET category_id = ?, name = ?, description = ?, price = ?, unit_type = ?, available = ?, image_url = ?
       WHERE id = ?
-    `).run(parsedCatId, name, description, parsedPrice, unit_type, available, image_url, id);
+    `);
 
-    const updatedProduct = await db
+    stmt.run(parsedCatId, name, description, parsedPrice, unit_type, available, image_url, id);
+
+    const updatedProduct = db
       .prepare('SELECT p.*, c.name as category_name FROM products p JOIN categories c ON p.category_id = c.id WHERE p.id = ?')
       .get(id);
 
     return NextResponse.json(updatedProduct);
   } catch (error) {
     console.error('Error updating product:', error);
-    return NextResponse.json(
-      { error: process.env.DATABASE_URL ? 'No se pudo conectar a la base de datos. Verificá DATABASE_URL en Vercel.' : 'Falta configurar DATABASE_URL en Vercel para conectar la base de datos.' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Error al actualizar producto' }, { status: 500 });
   }
 }

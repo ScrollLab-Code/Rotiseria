@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { 
   ShoppingBag, 
   Search, 
@@ -19,20 +20,20 @@ import {
   Utensils
 } from 'lucide-react';
 import TicketModal from './TicketModal';
+import type { Category, Order, OrderItem, Product } from '@/lib/types';
 
 interface POSViewProps {
-  products: any[];
-  categories: any[];
+  products: Product[];
+  categories: Category[];
   onOrderCreated: () => void;
-  shiftData: any;
 }
 
-export default function POSView({ products, categories, onOrderCreated, shiftData }: POSViewProps) {
+export default function POSView({ products, categories, onOrderCreated }: POSViewProps) {
   const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   
   // Cart state
-  const [cart, setCart] = useState<any[]>([]);
+  const [cart, setCart] = useState<OrderItem[]>([]);
   const [orderType, setOrderType] = useState<'mostrador' | 'delivery' | 'retiro'>('mostrador');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -45,7 +46,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
   const [orderNotes, setOrderNotes] = useState('');
 
   // Weight modal
-  const [weightModalItem, setWeightModalItem] = useState<any | null>(null);
+  const [weightModalItem, setWeightModalItem] = useState<Product | null>(null);
   const [inputWeightGrams, setInputWeightGrams] = useState<string>('500');
 
   // Notes modal
@@ -53,7 +54,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
   const [itemNoteInput, setItemNoteInput] = useState('');
 
   // Created order modal
-  const [createdOrder, setCreatedOrder] = useState<any | null>(null);
+  const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Filter products
@@ -64,7 +65,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
     return matchesCat && matchesSearch && p.available === 1;
   });
 
-  const addToCart = (product: any, quantity: number = 1, notes: string = '') => {
+  const addToCart = (product: Product, quantity: number = 1, notes: string = '') => {
     if (product.unit_type === 'kilo' && quantity === 1 && !notes) {
       setWeightModalItem(product);
       setInputWeightGrams('500');
@@ -178,7 +179,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
 
       if (!res.ok) throw new Error('Error al crear el pedido');
 
-      const data = await res.json();
+      const data = await res.json() as Order;
       setCreatedOrder(data);
 
       setCart([]);
@@ -203,7 +204,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
       {/* LEFT SECTION: Product Catalog (7 cols) */}
       <div className="lg:col-span-7 flex flex-col space-y-3">
         {/* Search & Category Filter */}
-        <div className="bg-white p-3 border border-slate-200 space-y-2">
+        <div className="bg-white p-3 sm:p-4 border border-slate-200 rounded-xl shadow-sm space-y-3">
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
             <input
@@ -243,9 +244,13 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
           </div>
         </div>
 
-        {/* Products Grid - Compact Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto max-h-[calc(100vh-14rem)] pr-0.5">
-          {filteredProducts.map((product) => {
+        {/* Products Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 overflow-y-auto max-h-[calc(100vh-14rem)] pr-0.5">
+          {filteredProducts.length === 0 ? (
+            <div className="col-span-full rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
+              No se encontraron productos disponibles.
+            </div>
+          ) : filteredProducts.map((product) => {
             const defaultImg = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=80';
             const imageUrl = product.image_url || defaultImg;
 
@@ -253,27 +258,27 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
               <div
                 key={product.id}
                 onClick={() => addToCart(product)}
-                className="bg-white border border-slate-200 hover:border-orange-400 transition-colors cursor-pointer flex flex-col justify-between group overflow-hidden"
+                className="bg-white border border-slate-200 rounded-xl shadow-sm hover:border-orange-400 hover:shadow-md transition-all cursor-pointer flex flex-col group overflow-hidden active:scale-[0.99]"
               >
                 {/* Product Photo */}
-                <div className="relative w-full h-24 bg-slate-100 border-b border-slate-100 overflow-hidden">
-                  <img
+                <div className="relative w-full h-28 sm:h-32 lg:h-28 xl:h-32 bg-slate-100 border-b border-slate-100 overflow-hidden">
+                  <Image
                     src={imageUrl}
                     alt={product.name}
+                    fill
+                    unoptimized
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = defaultImg;
-                    }}
+                    onError={(e) => { e.currentTarget.src = defaultImg; }}
                   />
                   
                   {/* Badge unit type */}
-                  <div className="absolute top-1.5 right-1.5">
+                  <div className="absolute top-2 right-2">
                     {product.unit_type === 'kilo' ? (
-                      <span className="bg-purple-600/90 text-white text-[9px] font-semibold px-1.5 py-0.5 flex items-center gap-0.5">
-                        <Scale className="w-2.5 h-2.5" /> Kilo
+                      <span className="bg-purple-600/90 text-white text-[10px] font-semibold px-2 py-1 flex items-center gap-1">
+                        <Scale className="w-3 h-3" /> Kilo
                       </span>
                     ) : (
-                      <span className="bg-slate-900/80 text-white text-[9px] font-medium px-1.5 py-0.5">
+                      <span className="bg-slate-900/80 text-white text-[10px] font-medium px-2 py-1">
                         {product.unit_type}
                       </span>
                     )}
@@ -281,18 +286,18 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
                 </div>
 
                 {/* Info Container */}
-                <div className="p-2.5 flex-1 flex flex-col justify-between space-y-1.5">
-                  <div>
-                    <span className="text-[9px] font-semibold text-orange-600 uppercase tracking-wide block">
+                <div className="p-3 flex-1 flex flex-col justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-semibold text-orange-600 uppercase tracking-wide block truncate">
                       {product.category_name}
                     </span>
-                    <h3 className="font-semibold text-slate-900 text-xs line-clamp-1 group-hover:text-orange-600 transition-colors">
+                    <h3 className="font-semibold text-slate-900 text-sm leading-snug line-clamp-2 min-h-10 group-hover:text-orange-600 transition-colors">
                       {product.name}
                     </h3>
                   </div>
 
-                  <div className="flex items-center justify-between border-t border-slate-100 pt-1.5">
-                    <span className="text-sm font-bold text-slate-900">
+                  <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-2">
+                    <span className="text-base font-bold text-slate-900 whitespace-nowrap">
                       ${product.price.toLocaleString('es-AR')}
                     </span>
                     
@@ -301,9 +306,9 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
                         e.stopPropagation();
                         addToCart(product);
                       }}
-                      className="bg-orange-500 hover:bg-orange-600 text-white px-2 py-0.5 text-[11px] font-medium flex items-center gap-1 transition-colors"
+                      className="min-h-10 bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 text-xs font-semibold flex items-center gap-1.5 transition-colors"
                     >
-                      <Plus className="w-3 h-3" />
+                      <Plus className="w-4 h-4" />
                       <span>Agregar</span>
                     </button>
                   </div>

@@ -1,30 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, type DatabaseRow } from '@/lib/db';
+import { db } from '@/lib/db';
+
+interface ReportTotals {
+  total_orders: number;
+  total_revenue: number;
+  avg_ticket: number;
+}
 
 export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const period = searchParams.get('period') || 'today'; // today, week, month
+  const { searchParams } = new URL(req.url);
+  const period = searchParams.get('period') || 'today';
 
-    let dateFilter = "(created_at AT TIME ZONE 'America/Argentina/Buenos_Aires')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Argentina/Buenos_Aires')::date";
+  try {
+    let dateFilter = "date(created_at, 'localtime') = date('now', 'localtime')";
     if (period === 'week') {
-      dateFilter = "created_at >= CURRENT_TIMESTAMP - INTERVAL '7 days'";
+      dateFilter = "created_at >= date('now', '-7 days', 'localtime')";
     } else if (period === 'month') {
-      dateFilter = "created_at >= date_trunc('month', CURRENT_TIMESTAMP AT TIME ZONE 'America/Argentina/Buenos_Aires')";
+      dateFilter = "created_at >= date('now', 'start of month', 'localtime')";
     }
 
     // Totals
-    const totals = await db.prepare(`
+    const totalsRow = db.prepare(`
       SELECT 
         COUNT(*) as total_orders,
         COALESCE(SUM(total_amount), 0) as total_revenue,
         COALESCE(AVG(total_amount), 0) as avg_ticket
       FROM orders
       WHERE ${dateFilter} AND kitchen_status != 'cancelado'
-    `).get() as DatabaseRow;
+    `).get();
+    if (!totalsRow) throw new Error('No se pudieron obtener los totales del reporte');
+    const totals: ReportTotals = {
+      total_orders: Number(totalsRow.total_orders),
+      total_revenue: Number(totalsRow.total_revenue),
+      avg_ticket: Number(totalsRow.avg_ticket),
+    };
 
     // By Payment Method
-    const byPaymentMethod = await db.prepare(`
+    const byPaymentMethod = db.prepare(`
       SELECT 
         payment_method,
         COUNT(*) as count,
@@ -35,7 +47,7 @@ export async function GET(req: NextRequest) {
     `).all();
 
     // By Order Type
-    const byOrderType = await db.prepare(`
+    const byOrderType = db.prepare(`
       SELECT 
         order_type,
         COUNT(*) as count,
@@ -46,7 +58,7 @@ export async function GET(req: NextRequest) {
     `).all();
 
     // Top Selling Products
-    const topProducts = await db.prepare(`
+    const topProducts = db.prepare(`
       SELECT 
         oi.product_name,
         oi.unit_type,

@@ -2,9 +2,10 @@
 
 import React from 'react';
 import { Printer, X } from 'lucide-react';
+import type { Order, OrderItem } from '@/lib/types';
 
 interface TicketModalProps {
-  order: any;
+  order: Order;
   onClose: () => void;
   mode?: 'ticket' | 'kitchen';
 }
@@ -111,7 +112,7 @@ export default function TicketModal({ order, onClose, mode = 'ticket' }: TicketM
                 {viewMode === 'ticket' && <span className="w-14 text-right">TOTAL</span>}
               </div>
 
-              {order.items?.map((item: any, idx: number) => (
+              {order.items?.map((item: OrderItem, idx: number) => (
                 <div key={idx} className="mb-1.5 pb-1 border-b border-slate-200">
                   <div className="flex text-[11px] font-semibold">
                     <span className="w-10 font-bold">
