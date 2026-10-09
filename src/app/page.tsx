@@ -77,17 +77,17 @@ export default function Home() {
 
   if (loading && products.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center space-y-4">
-        <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center font-bold text-slate-950 text-2xl animate-bounce shadow-lg shadow-amber-500/20">
+      <div className="min-h-screen bg-orange-50/30 text-slate-900 flex flex-col items-center justify-center space-y-4">
+        <div className="w-12 h-12 rounded-2xl bg-orange-500 flex items-center justify-center font-bold text-white text-2xl animate-bounce shadow-lg shadow-orange-500/20">
           🍗
         </div>
-        <div className="text-sm font-bold text-amber-400">Cargando Sistema de Rotisería...</div>
+        <div className="text-sm font-bold text-orange-600">Cargando Sistema de Rotisería...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-slate-950">
+    <div className="min-h-screen bg-orange-50/20 text-slate-900 flex flex-col selection:bg-orange-500 selection:text-white">
       {/* Navigation Header */}
       <Header
         activeTab={activeTab}
@@ -122,14 +122,14 @@ export default function Home() {
         )}
 
         {activeTab === 'cash' && (
-          <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
-            <h2 className="text-xl font-bold text-white">Arqueo y Control de Caja</h2>
-            <p className="text-xs text-slate-400">
+          <div className="bg-white p-6 rounded-2xl border border-orange-200 space-y-4 shadow-sm">
+            <h2 className="text-xl font-extrabold text-slate-900">Arqueo y Control de Caja</h2>
+            <p className="text-xs text-slate-500 font-medium">
               Gestione la apertura, cierre, montos iniciales e ingresos/egresos adicionales de efectivo.
             </p>
             <button
               onClick={() => setIsCashModalOpen(true)}
-              className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl font-bold text-xs uppercase shadow-md shadow-amber-500/10"
+              className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-xs uppercase shadow-md shadow-orange-500/20"
             >
               Abrir Panel de Control de Caja
             </button>
