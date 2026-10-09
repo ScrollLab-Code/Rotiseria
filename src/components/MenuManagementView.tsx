@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UtensilsCrossed, Plus, Edit2, Search } from 'lucide-react';
 
 interface MenuManagementProps {
@@ -26,6 +26,13 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
   const [available, setAvailable] = useState<boolean>(true);
 
   const [isLoading, setIsLoading] = useState(false);
+
+  // Sync categoryId when categories change
+  useEffect(() => {
+    if (categories.length > 0 && !categoryId) {
+      setCategoryId(categories[0].id);
+    }
+  }, [categories]);
 
   const filteredProducts = products.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -73,8 +80,16 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
 
   const handleSaveProduct = async () => {
     const numPrice = parseFloat(price);
-    if (!name || isNaN(numPrice) || numPrice < 0) {
-      return alert('Complete el nombre y precio del producto');
+    const targetCatId = categoryId || categories[0]?.id;
+
+    if (!name.trim()) {
+      return alert('Por favor ingrese el nombre del plato o producto');
+    }
+    if (isNaN(numPrice) || numPrice < 0) {
+      return alert('Por favor ingrese un precio válido (mayor o igual a 0)');
+    }
+    if (!targetCatId) {
+      return alert('Por favor seleccione una categoría');
     }
 
     setIsLoading(true);
@@ -82,9 +97,9 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
     try {
       const payload = {
         id: editingProduct?.id,
-        category_id: categoryId,
-        name,
-        description,
+        category_id: targetCatId,
+        name: name.trim(),
+        description: description.trim(),
         price: numPrice,
         unit_type: unitType,
         available: available ? 1 : 0,
@@ -96,12 +111,18 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error('Error al guardar producto');
+      const resData = await res.json();
+
+      if (!res.ok) {
+        alert(resData.error || 'Error al guardar el producto');
+        return;
+      }
 
       setIsModalOpen(false);
       onRefresh();
-    } catch (err) {
-      alert('Error al guardar el producto');
+    } catch (err: any) {
+      console.error('Error saving product:', err);
+      alert('Ocurrió un error al guardar el producto');
     } finally {
       setIsLoading(false);
     }
@@ -129,7 +150,7 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
               placeholder="Buscar plato..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 pr-3 py-1.5 bg-orange-50/40 border border-orange-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-orange-500"
+              className="pl-9 pr-3 py-1.5 bg-orange-50/40 border border-orange-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-orange-500 font-medium"
             />
           </div>
 
@@ -317,7 +338,7 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
                 disabled={isLoading}
                 className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-xs shadow-md shadow-orange-500/20"
               >
-                Guardar
+                {isLoading ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
           </div>

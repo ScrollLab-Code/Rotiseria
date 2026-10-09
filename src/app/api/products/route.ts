@@ -43,8 +43,11 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { category_id, name, description, price, unit_type, available = 1 } = body;
 
-    if (!category_id || !name || price === undefined || !unit_type) {
-      return NextResponse.json({ error: 'Faltan campos obligatorios' }, { status: 400 });
+    const parsedCatId = Number(category_id);
+    const parsedPrice = Number(price);
+
+    if (!parsedCatId || !name || Number.isNaN(parsedPrice) || !unit_type) {
+      return NextResponse.json({ error: 'Faltan campos obligatorios (nombre, categoría, precio o tipo)' }, { status: 400 });
     }
 
     const stmt = db.prepare(`
@@ -52,14 +55,14 @@ export async function POST(req: NextRequest) {
       VALUES (?, ?, ?, ?, ?, ?)
     `);
 
-    const result = stmt.run(category_id, name, description || '', price, unit_type, available ? 1 : 0);
+    const result = stmt.run(parsedCatId, name.trim(), description || '', parsedPrice, unit_type, available ? 1 : 0);
 
     const newProduct = db.prepare('SELECT p.*, c.name as category_name FROM products p JOIN categories c ON p.category_id = c.id WHERE p.id = ?').get(result.lastInsertRowid);
 
     return NextResponse.json(newProduct, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating product:', error);
-    return NextResponse.json({ error: 'Error al crear producto' }, { status: 500 });
+    return NextResponse.json({ error: error?.message || 'Error al crear producto' }, { status: 500 });
   }
 }
 
@@ -72,19 +75,22 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'ID de producto requerido' }, { status: 400 });
     }
 
+    const parsedCatId = Number(category_id);
+    const parsedPrice = Number(price);
+
     const stmt = db.prepare(`
       UPDATE products
       SET category_id = ?, name = ?, description = ?, price = ?, unit_type = ?, available = ?
       WHERE id = ?
     `);
 
-    stmt.run(category_id, name, description || '', price, unit_type, available ? 1 : 0, id);
+    stmt.run(parsedCatId, name.trim(), description || '', parsedPrice, unit_type, available ? 1 : 0, id);
 
     const updatedProduct = db.prepare('SELECT p.*, c.name as category_name FROM products p JOIN categories c ON p.category_id = c.id WHERE p.id = ?').get(id);
 
     return NextResponse.json(updatedProduct);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating product:', error);
-    return NextResponse.json({ error: 'Error al actualizar producto' }, { status: 500 });
+    return NextResponse.json({ error: error?.message || 'Error al actualizar producto' }, { status: 500 });
   }
 }
