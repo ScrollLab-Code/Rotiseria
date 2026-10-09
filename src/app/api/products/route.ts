@@ -41,13 +41,22 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { category_id, name, description, price, unit_type, available = 1, image_url = '' } = body;
+    const rawCatId = body.category_id ?? body.categoryId;
+    const rawPrice = body.price;
+    const name = body.name ? String(body.name).trim() : '';
+    const description = body.description ? String(body.description).trim() : '';
+    const unit_type = body.unit_type || body.unitType || 'unidad';
+    const available = body.available === 0 || body.available === false ? 0 : 1;
+    const image_url = body.image_url ? String(body.image_url).trim() : '';
 
-    const parsedCatId = Number(category_id);
-    const parsedPrice = Number(price);
+    const parsedCatId = Number(rawCatId);
+    const parsedPrice = Number(rawPrice);
 
     if (!parsedCatId || !name || Number.isNaN(parsedPrice) || !unit_type) {
-      return NextResponse.json({ error: 'Faltan campos obligatorios (nombre, categoría, precio o tipo)' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Faltan campos obligatorios: nombre, categoría, precio válido o modo de venta' },
+        { status: 400 }
+      );
     }
 
     const stmt = db.prepare(`
@@ -55,9 +64,11 @@ export async function POST(req: NextRequest) {
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
 
-    const result = stmt.run(parsedCatId, name.trim(), description || '', parsedPrice, unit_type, available ? 1 : 0, image_url.trim());
+    const result = stmt.run(parsedCatId, name, description, parsedPrice, unit_type, available, image_url);
 
-    const newProduct = db.prepare('SELECT p.*, c.name as category_name FROM products p JOIN categories c ON p.category_id = c.id WHERE p.id = ?').get(result.lastInsertRowid);
+    const newProduct = db
+      .prepare('SELECT p.*, c.name as category_name FROM products p JOIN categories c ON p.category_id = c.id WHERE p.id = ?')
+      .get(result.lastInsertRowid);
 
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error: any) {
@@ -69,14 +80,21 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, category_id, name, description, price, unit_type, available, image_url } = body;
-
+    const id = Number(body.id);
     if (!id) {
       return NextResponse.json({ error: 'ID de producto requerido' }, { status: 400 });
     }
 
-    const parsedCatId = Number(category_id);
-    const parsedPrice = Number(price);
+    const rawCatId = body.category_id ?? body.categoryId;
+    const rawPrice = body.price;
+    const name = body.name ? String(body.name).trim() : '';
+    const description = body.description ? String(body.description).trim() : '';
+    const unit_type = body.unit_type || body.unitType || 'unidad';
+    const available = body.available === 0 || body.available === false ? 0 : 1;
+    const image_url = body.image_url ? String(body.image_url).trim() : '';
+
+    const parsedCatId = Number(rawCatId);
+    const parsedPrice = Number(rawPrice);
 
     const stmt = db.prepare(`
       UPDATE products
@@ -84,9 +102,11 @@ export async function PUT(req: NextRequest) {
       WHERE id = ?
     `);
 
-    stmt.run(parsedCatId, name.trim(), description || '', parsedPrice, unit_type, available ? 1 : 0, image_url ? image_url.trim() : '', id);
+    stmt.run(parsedCatId, name, description, parsedPrice, unit_type, available, image_url, id);
 
-    const updatedProduct = db.prepare('SELECT p.*, c.name as category_name FROM products p JOIN categories c ON p.category_id = c.id WHERE p.id = ?').get(id);
+    const updatedProduct = db
+      .prepare('SELECT p.*, c.name as category_name FROM products p JOIN categories c ON p.category_id = c.id WHERE p.id = ?')
+      .get(id);
 
     return NextResponse.json(updatedProduct);
   } catch (error: any) {

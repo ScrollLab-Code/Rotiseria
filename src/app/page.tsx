@@ -77,17 +77,19 @@ export default function Home() {
 
   if (loading && products.length === 0) {
     return (
-      <div className="min-h-screen bg-orange-50/30 text-slate-900 flex flex-col items-center justify-center space-y-4">
-        <div className="w-16 h-16 bg-orange-500 border-4 border-slate-900 flex items-center justify-center text-3xl animate-bounce">
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col items-center justify-center space-y-3">
+        <div className="w-12 h-12 bg-orange-500 text-white flex items-center justify-center text-2xl animate-bounce border border-orange-600">
           🍗
         </div>
-        <div className="text-sm font-black uppercase tracking-widest text-orange-600 border-2 border-slate-900 px-4 py-2 bg-white">CARGANDO SISTEMA EMPANADAS PICÚN...</div>
+        <div className="text-xs font-semibold text-slate-700 bg-white border border-slate-200 px-3 py-1.5">
+          Cargando Sistema Empanadas Picún...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-orange-50/20 text-slate-900 flex flex-col selection:bg-orange-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-orange-500 selection:text-white">
       {/* Navigation Header */}
       <Header
         activeTab={activeTab}
@@ -97,7 +99,7 @@ export default function Home() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-4 lg:p-6">
         {activeTab === 'pos' && (
           <POSView
             products={products}
@@ -122,16 +124,16 @@ export default function Home() {
         )}
 
         {activeTab === 'cash' && (
-          <div className="bg-white p-6 border-2 border-slate-900 space-y-4">
-            <h2 className="text-xl font-black uppercase text-slate-900 tracking-wider">ARQUEO Y CONTROL DE CAJA</h2>
-            <p className="text-xs text-slate-500 font-bold uppercase">
-              GESTIONE LA APERTURA, CIERRE, MONTOS INICIALES E INGRESOS/EGRESOS ADICIONALES DE EFECTIVO.
+          <div className="bg-white p-5 border border-slate-200 space-y-3">
+            <h2 className="text-base font-bold text-slate-900">Arqueo y Control de Caja</h2>
+            <p className="text-xs text-slate-500">
+              Gestione la apertura, cierre, montos iniciales e ingresos/egresos adicionales de efectivo.
             </p>
             <button
               onClick={() => setIsCashModalOpen(true)}
-              className="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white border-2 border-slate-900 font-black text-xs uppercase transition"
+              className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs transition-colors"
             >
-              ABRIR PANEL DE CONTROL DE CAJA
+              Abrir Panel de Control de Caja
             </button>
           </div>
         )}

@@ -13,7 +13,7 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCat, setSelectedCat] = useState<number | 'all'>('all');
   
-  // Modal State for New/Edit Product
+  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
 
@@ -28,12 +28,11 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // Sync categoryId when categories change
   useEffect(() => {
     if (categories.length > 0 && !categoryId) {
       setCategoryId(categories[0].id);
     }
-  }, [categories]);
+  }, [categories, categoryId]);
 
   const filteredProducts = products.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -89,7 +88,7 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
       return alert('Por favor ingrese el nombre del plato o producto');
     }
     if (isNaN(numPrice) || numPrice < 0) {
-      return alert('Por favor ingrese un precio válido (mayor o igual a 0)');
+      return alert('Por favor ingrese un precio válido');
     }
     if (!targetCatId) {
       return alert('Por favor seleccione una categoría');
@@ -133,61 +132,61 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Header & Search Bar (Square Industrial) */}
-      <div className="bg-white p-4 border-2 border-slate-900 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center space-x-3">
-          <div className="p-3 bg-orange-500 text-white border-2 border-slate-900">
-            <UtensilsCrossed className="w-6 h-6" />
+    <div className="space-y-4">
+      {/* Top Header & Search Bar */}
+      <div className="bg-white p-3 border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center space-x-2.5">
+          <div className="p-2 bg-orange-500 text-white">
+            <UtensilsCrossed className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-lg font-black uppercase text-slate-900">Gestión de Menú & Precios</h2>
-            <p className="text-xs text-orange-600 font-bold uppercase">{products.length} PLATOS REGISTRADOS</p>
+            <h2 className="text-sm font-bold text-slate-900">Gestión de Menú & Precios</h2>
+            <p className="text-xs text-orange-600 font-semibold">{products.length} platos registrados</p>
           </div>
         </div>
 
         <div className="flex items-center space-x-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-orange-600" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
             <input
               type="text"
-              placeholder="BUSCAR PLATO..."
+              placeholder="Buscar plato..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 pr-3 py-2 bg-orange-50/40 border-2 border-slate-900 text-xs text-slate-900 font-bold placeholder-slate-400 focus:outline-none uppercase"
+              className="pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 text-xs text-slate-800 font-medium placeholder-slate-400 focus:outline-none focus:border-orange-500"
             />
           </div>
 
           <button
             onClick={openNewProductModal}
-            className="flex items-center space-x-1 bg-orange-500 hover:bg-orange-600 text-white text-xs px-4 py-2 font-black uppercase border-2 border-slate-900"
+            className="flex items-center space-x-1 bg-orange-500 hover:bg-orange-600 text-white text-xs px-3 py-1.5 font-semibold transition-colors"
           >
-            <Plus className="w-4 h-4" />
-            <span>NUEVO PLATO</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Nuevo Plato</span>
           </button>
         </div>
       </div>
 
-      {/* Category Tabs (Square) */}
-      <div className="flex space-x-2 overflow-x-auto pb-1 no-scrollbar">
+      {/* Category Tabs */}
+      <div className="flex space-x-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
         <button
           onClick={() => setSelectedCat('all')}
-          className={`px-4 py-2 text-xs font-black uppercase tracking-wider border-2 transition ${
+          className={`px-3 py-1.5 font-medium transition-colors border ${
             selectedCat === 'all'
-              ? 'bg-orange-500 text-white border-slate-900'
-              : 'bg-white text-slate-800 border-slate-300 hover:bg-orange-50'
+              ? 'bg-orange-500 text-white border-orange-600'
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
           }`}
         >
-          TODOS ({products.length})
+          Todos ({products.length})
         </button>
         {categories.map((c) => (
           <button
             key={c.id}
             onClick={() => setSelectedCat(c.id)}
-            className={`px-4 py-2 text-xs font-black uppercase tracking-wider border-2 transition ${
+            className={`px-3 py-1.5 font-medium transition-colors border whitespace-nowrap ${
               selectedCat === c.id
-                ? 'bg-orange-500 text-white border-slate-900'
-                : 'bg-white text-slate-800 border-slate-300 hover:bg-orange-50'
+                ? 'bg-orange-500 text-white border-orange-600'
+                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
             }`}
           >
             {c.name}
@@ -195,29 +194,29 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
         ))}
       </div>
 
-      {/* Products Table with Photo Thumbnails (McDonald's style) */}
-      <div className="bg-white border-2 border-slate-900 overflow-hidden">
+      {/* Products Table with Photo Thumbnails */}
+      <div className="bg-white border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-900">
-            <thead className="bg-slate-900 text-white font-black uppercase tracking-wider">
+          <table className="w-full text-left text-xs text-slate-800">
+            <thead className="bg-slate-800 text-white font-semibold">
               <tr>
-                <th className="px-4 py-3.5">Foto</th>
-                <th className="px-4 py-3.5">Plato / Producto</th>
-                <th className="px-4 py-3.5">Categoría</th>
-                <th className="px-4 py-3.5">Venta Por</th>
-                <th className="px-4 py-3.5">Precio</th>
-                <th className="px-4 py-3.5 text-center">Estado</th>
-                <th className="px-4 py-3.5 text-center">Acción</th>
+                <th className="px-3 py-2">Foto</th>
+                <th className="px-3 py-2">Plato / Producto</th>
+                <th className="px-3 py-2">Categoría</th>
+                <th className="px-3 py-2">Venta Por</th>
+                <th className="px-3 py-2">Precio</th>
+                <th className="px-3 py-2 text-center">Estado</th>
+                <th className="px-3 py-2 text-center">Acción</th>
               </tr>
             </thead>
-            <tbody className="divide-y-2 divide-slate-100 font-bold">
+            <tbody className="divide-y divide-slate-100 font-medium">
               {filteredProducts.map((product) => {
                 const defaultImg = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=80';
 
                 return (
-                  <tr key={product.id} className="hover:bg-orange-50/40 transition">
-                    <td className="px-4 py-2.5">
-                      <div className="w-12 h-12 bg-slate-100 border-2 border-slate-900 overflow-hidden">
+                  <tr key={product.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-3 py-1.5">
+                      <div className="w-9 h-9 bg-slate-100 border border-slate-200 overflow-hidden">
                         <img
                           src={product.image_url || defaultImg}
                           alt={product.name}
@@ -228,46 +227,46 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
                         />
                       </div>
                     </td>
-                    <td className="px-4 py-2.5">
-                      <div className="font-black text-slate-900 text-sm uppercase">{product.name}</div>
+                    <td className="px-3 py-1.5">
+                      <div className="font-semibold text-slate-900">{product.name}</div>
                       {product.description && (
-                        <div className="text-[11px] text-slate-500 line-clamp-1">{product.description}</div>
+                        <div className="text-[10px] text-slate-400 line-clamp-1">{product.description}</div>
                       )}
                     </td>
-                    <td className="px-4 py-2.5 font-bold uppercase text-slate-700">{product.category_name}</td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-3 py-1.5 font-medium text-slate-600">{product.category_name}</td>
+                    <td className="px-3 py-1.5">
                       {product.unit_type === 'kilo' ? (
-                        <span className="bg-purple-600 text-white text-[10px] font-black px-2 py-0.5 border border-slate-900 uppercase">
-                          POR KILO
+                        <span className="bg-purple-50 text-purple-700 text-[10px] font-semibold px-1.5 py-0.5 border border-purple-200">
+                          Por Kilo
                         </span>
                       ) : (
-                        <span className="bg-slate-900 text-white text-[10px] font-black px-2 py-0.5 uppercase">
+                        <span className="bg-slate-100 text-slate-700 text-[10px] font-medium px-1.5 py-0.5 border border-slate-200 capitalize">
                           {product.unit_type}
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-2.5 font-black text-orange-600 text-sm">
+                    <td className="px-3 py-1.5 font-bold text-orange-600">
                       ${product.price.toLocaleString('es-AR')}
                     </td>
-                    <td className="px-4 py-2.5 text-center">
+                    <td className="px-3 py-1.5 text-center">
                       <button
                         onClick={() => handleToggleAvailability(product)}
-                        className={`px-3 py-1 text-[10px] font-black uppercase border-2 transition ${
+                        className={`px-2 py-0.5 text-[10px] font-semibold border transition-colors ${
                           product.available === 1
-                            ? 'bg-emerald-100 text-emerald-900 border-emerald-600 hover:bg-emerald-200'
-                            : 'bg-rose-100 text-rose-900 border-rose-600 hover:bg-rose-200'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100'
+                            : 'bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100'
                         }`}
                       >
-                        {product.available === 1 ? 'DISPONIBLE' : 'AGOTADO'}
+                        {product.available === 1 ? 'Disponible' : 'Agotado'}
                       </button>
                     </td>
-                    <td className="px-4 py-2.5 text-center">
+                    <td className="px-3 py-1.5 text-center">
                       <button
                         onClick={() => openEditProductModal(product)}
-                        className="p-1.5 bg-orange-500 hover:bg-orange-600 text-white border-2 border-slate-900"
+                        className="p-1 bg-orange-500 hover:bg-orange-600 text-white transition-colors"
                         title="Editar Plato"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 className="w-3.5 h-3.5" />
                       </button>
                     </td>
                   </tr>
@@ -278,21 +277,21 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
         </div>
       </div>
 
-      {/* NEW / EDIT PRODUCT MODAL (Square Industrial) */}
+      {/* NEW / EDIT PRODUCT MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="bg-white border-4 border-slate-900 p-6 max-w-md w-full space-y-4">
-            <h3 className="font-black text-slate-900 text-base uppercase border-b-2 border-slate-900 pb-2">
-              {editingProduct ? 'EDITAR PLATO' : 'AGREGAR NUEVO PLATO'}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+          <div className="bg-white border border-slate-300 p-5 max-w-sm w-full space-y-3">
+            <h3 className="font-semibold text-slate-900 text-xs border-b border-slate-200 pb-2">
+              {editingProduct ? 'Editar Plato' : 'Agregar Nuevo Plato'}
             </h3>
 
-            <div className="space-y-3 text-xs font-bold">
+            <div className="space-y-2 text-xs font-medium">
               <div>
-                <label className="text-slate-900 block mb-1 font-black uppercase">Categoría</label>
+                <label className="text-slate-700 block mb-0.5 font-semibold">Categoría</label>
                 <select
                   value={categoryId}
                   onChange={(e) => setCategoryId(Number(e.target.value))}
-                  className="w-full bg-orange-50/50 border-2 border-slate-900 py-2 px-3 text-slate-900 font-bold focus:outline-none uppercase"
+                  className="w-full bg-slate-50 border border-slate-200 py-1.5 px-2 text-slate-900 font-medium focus:outline-none focus:border-orange-500"
                 >
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -303,59 +302,59 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
               </div>
 
               <div>
-                <label className="text-slate-900 block mb-1 font-black uppercase">Nombre del Plato</label>
+                <label className="text-slate-700 block mb-0.5 font-semibold">Nombre del Plato</label>
                 <input
                   type="text"
                   placeholder="Ej: Pollo al Spiedo / Milanesa Napolitana"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-orange-50/50 border-2 border-slate-900 py-2 px-3 text-slate-900 font-bold focus:outline-none uppercase"
+                  className="w-full bg-slate-50 border border-slate-200 py-1.5 px-2 text-slate-900 font-medium focus:outline-none focus:border-orange-500"
                 />
               </div>
 
               <div>
-                <label className="text-slate-900 block mb-1 font-black uppercase">URL de Foto del Plato (Tipo McDonald's)</label>
+                <label className="text-slate-700 block mb-0.5 font-semibold">URL de Foto (Opcional)</label>
                 <div className="relative">
-                  <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-orange-600" />
+                  <ImageIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                   <input
                     type="text"
                     placeholder="https://images.unsplash.com/photo-..."
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-orange-50/50 border-2 border-slate-900 text-slate-900 font-bold focus:outline-none"
+                    className="w-full pl-8 pr-2 py-1.5 bg-slate-50 border border-slate-200 text-slate-900 font-medium focus:outline-none focus:border-orange-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-slate-900 block mb-1 font-black uppercase">Descripción (Opcional)</label>
+                <label className="text-slate-700 block mb-0.5 font-semibold">Descripción (Opcional)</label>
                 <input
                   type="text"
                   placeholder="Ej: Con papas fritas o ensalada rusa"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-orange-50/50 border-2 border-slate-900 py-2 px-3 text-slate-900 font-bold focus:outline-none uppercase"
+                  className="w-full bg-slate-50 border border-slate-200 py-1.5 px-2 text-slate-900 font-medium focus:outline-none focus:border-orange-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-slate-900 block mb-1 font-black uppercase">Precio ($)</label>
+                  <label className="text-slate-700 block mb-0.5 font-semibold">Precio ($)</label>
                   <input
                     type="number"
                     placeholder="8500"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className="w-full bg-orange-50/50 border-2 border-slate-900 py-2 px-3 text-slate-900 font-black focus:outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 py-1.5 px-2 text-slate-900 font-bold focus:outline-none focus:border-orange-500"
                   />
                 </div>
 
                 <div>
-                  <label className="text-slate-900 block mb-1 font-black uppercase">Modo de Venta</label>
+                  <label className="text-slate-700 block mb-0.5 font-semibold">Modo de Venta</label>
                   <select
                     value={unitType}
                     onChange={(e) => setUnitType(e.target.value as any)}
-                    className="w-full bg-orange-50/50 border-2 border-slate-900 py-2 px-3 text-slate-900 font-bold focus:outline-none uppercase"
+                    className="w-full bg-slate-50 border border-slate-200 py-1.5 px-2 text-slate-900 font-medium focus:outline-none focus:border-orange-500"
                   >
                     <option value="unidad">Por Unidad</option>
                     <option value="kilo">Por Kilo ($/kg)</option>
@@ -365,19 +364,19 @@ export default function MenuManagementView({ products, categories, onRefresh }: 
               </div>
             </div>
 
-            <div className="flex space-x-2 pt-2">
+            <div className="flex space-x-2 pt-1">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-900 font-black border-2 border-slate-900 text-xs uppercase"
+                className="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium border border-slate-200 text-xs"
               >
-                CANCELAR
+                Cancelar
               </button>
               <button
                 onClick={handleSaveProduct}
                 disabled={isLoading}
-                className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-black border-2 border-slate-900 text-xs uppercase"
+                className="flex-1 py-1.5 bg-orange-500 hover:bg-orange-600 text-white font-semibold border border-orange-600 text-xs"
               >
-                {isLoading ? 'GUARDANDO...' : 'GUARDAR'}
+                {isLoading ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
           </div>
