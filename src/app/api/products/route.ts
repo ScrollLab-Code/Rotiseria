@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { category_id, name, description, price, unit_type, available = 1 } = body;
+    const { category_id, name, description, price, unit_type, available = 1, image_url = '' } = body;
 
     const parsedCatId = Number(category_id);
     const parsedPrice = Number(price);
@@ -51,11 +51,11 @@ export async function POST(req: NextRequest) {
     }
 
     const stmt = db.prepare(`
-      INSERT INTO products (category_id, name, description, price, unit_type, available)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO products (category_id, name, description, price, unit_type, available, image_url)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
 
-    const result = stmt.run(parsedCatId, name.trim(), description || '', parsedPrice, unit_type, available ? 1 : 0);
+    const result = stmt.run(parsedCatId, name.trim(), description || '', parsedPrice, unit_type, available ? 1 : 0, image_url.trim());
 
     const newProduct = db.prepare('SELECT p.*, c.name as category_name FROM products p JOIN categories c ON p.category_id = c.id WHERE p.id = ?').get(result.lastInsertRowid);
 
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, category_id, name, description, price, unit_type, available } = body;
+    const { id, category_id, name, description, price, unit_type, available, image_url } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'ID de producto requerido' }, { status: 400 });
@@ -80,11 +80,11 @@ export async function PUT(req: NextRequest) {
 
     const stmt = db.prepare(`
       UPDATE products
-      SET category_id = ?, name = ?, description = ?, price = ?, unit_type = ?, available = ?
+      SET category_id = ?, name = ?, description = ?, price = ?, unit_type = ?, available = ?, image_url = ?
       WHERE id = ?
     `);
 
-    stmt.run(parsedCatId, name.trim(), description || '', parsedPrice, unit_type, available ? 1 : 0, id);
+    stmt.run(parsedCatId, name.trim(), description || '', parsedPrice, unit_type, available ? 1 : 0, image_url ? image_url.trim() : '', id);
 
     const updatedProduct = db.prepare('SELECT p.*, c.name as category_name FROM products p JOIN categories c ON p.category_id = c.id WHERE p.id = ?').get(id);
 

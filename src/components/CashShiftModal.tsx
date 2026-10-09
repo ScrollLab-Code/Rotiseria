@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Wallet, X, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { X, DollarSign, TrendingUp, TrendingDown, Lock, Unlock, ArrowRightLeft, AlertTriangle } from 'lucide-react';
 
 interface CashShiftModalProps {
   shiftData: any;
@@ -10,393 +10,284 @@ interface CashShiftModalProps {
 }
 
 export default function CashShiftModal({ shiftData, onClose, onRefresh }: CashShiftModalProps) {
-  const [tab, setTab] = useState<'status' | 'movement' | 'close' | 'open'>('status');
-  
-  // Open cash inputs
-  const [initialCashInput, setInitialCashInput] = useState<string>('15000');
+  const [activeTab, setActiveTab] = useState<'resumen' | 'movimientos' | 'acciones'>('resumen');
+  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
+  const [movementType, setMovementType] = useState<'entrada' | 'salida'>('entrada');
+  const [initialCash, setInitialCash] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  // Movement inputs
-  const [movementType, setMovementType] = useState<'ingreso' | 'egreso'>('egreso');
-  const [movementAmount, setMovementAmount] = useState<string>('');
-  const [movementConcept, setMovementConcept] = useState<string>('');
+  const hasShift = shiftData?.shift;
 
-  // Close cash inputs
-  const [countedCashInput, setCountedCashInput] = useState<string>('');
-  const [closeNotesInput, setCloseNotesInput] = useState<string>('');
-
-  const [isLoading, setIsLoading] = useState(false);
-
-  const isShiftOpen = !!shiftData?.activeShift;
-  const totals = shiftData?.totals || {};
-
-  const handleOpenCash = async () => {
-    const amount = parseFloat(initialCashInput);
-    if (isNaN(amount) || amount < 0) return alert('Ingrese un monto inicial válido');
-
-    setIsLoading(true);
+  const handleOpenShift = async () => {
+    const val = parseFloat(initialCash);
+    if (isNaN(val) || val < 0) { setError('Monto inicial inválido'); return; }
+    setError('');
+    setLoading(true);
     try {
       const res = await fetch('/api/cash-shift', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'open', initial_cash: amount }),
+        body: JSON.stringify({ action: 'open', initial_cash: val }),
       });
-      if (!res.ok) throw new Error('Error al abrir la caja');
+      if (!res.ok) throw new Error('Error al abrir turno');
       onRefresh();
-      onClose();
-    } catch (err) {
-      alert('Ocurrió un error al abrir la caja');
-    } finally {
-      setIsLoading(false);
+      setInitialCash('');
+    } catch (e: any) {
+      setError(e.message);
     }
+    setLoading(false);
   };
 
-  const handleRegisterMovement = async () => {
-    const amount = parseFloat(movementAmount);
-    if (isNaN(amount) || amount <= 0 || !movementConcept) {
-      return alert('Complete monto y concepto válido');
-    }
-
-    setIsLoading(true);
+  const handleCloseShift = async () => {
+    if (!confirm('¿Seguro que querés cerrar el turno de caja?')) return;
+    setLoading(true);
     try {
       const res = await fetch('/api/cash-shift', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'movement',
-          type: movementType,
-          amount,
-          concept: movementConcept,
-        }),
+        body: JSON.stringify({ action: 'close' }),
+      });
+      if (!res.ok) throw new Error('Error al cerrar turno');
+      onRefresh();
+      onClose();
+    } catch (e: any) {
+      setError(e.message);
+    }
+    setLoading(false);
+  };
+
+  const handleMovement = async () => {
+    const val = parseFloat(amount);
+    if (isNaN(val) || val <= 0) { setError('Monto inválido'); return; }
+    if (!description.trim()) { setError('Agregá una descripción'); return; }
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch('/api/cash-shift', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'movement', type: movementType, amount: val, description: description.trim() }),
       });
       if (!res.ok) throw new Error('Error al registrar movimiento');
-      setMovementAmount('');
-      setMovementConcept('');
       onRefresh();
-      setTab('status');
-    } catch (err) {
-      alert('Error al registrar movimiento');
-    } finally {
-      setIsLoading(false);
+      setAmount('');
+      setDescription('');
+    } catch (e: any) {
+      setError(e.message);
     }
+    setLoading(false);
   };
 
-  const handleCloseCash = async () => {
-    const counted = parseFloat(countedCashInput);
-    if (isNaN(counted) || counted < 0) return alert('Ingrese el monto contado en caja');
-
-    setIsLoading(true);
-    try {
-      const res = await fetch('/api/cash-shift', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'close',
-          final_cash_counted: counted,
-          notes: closeNotesInput,
-        }),
-      });
-      if (!res.ok) throw new Error('Error al cerrar caja');
-      onRefresh();
-      onClose();
-    } catch (err) {
-      alert('Error al realizar el arqueo y cierre de caja');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const expectedCash = totals.expected_cash || 0;
-  const countedCash = parseFloat(countedCashInput) || 0;
-  const cashDifference = countedCash - expectedCash;
+  const totals = shiftData?.totals;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-      <div className="bg-white border border-orange-200 rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden text-slate-900 flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4">
+      <div className="bg-white border-4 border-slate-900 shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col">
+
         {/* Modal Header */}
-        <div className="p-4 bg-orange-50 border-b border-orange-200 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
-              <Wallet className="w-5 h-5" />
+        <div className="bg-slate-900 p-4 flex items-center justify-between shrink-0">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-orange-500 border-2 border-orange-300">
+              <DollarSign className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 text-base">Control de Caja & Arqueo</h3>
-              <p className="text-xs text-slate-500 font-medium">
-                {isShiftOpen ? `Turno de caja N° ${shiftData.activeShift.id}` : 'No hay turno abierto'}
-              </p>
+              <h2 className="text-white font-black text-base uppercase tracking-wider">ARQUEO DE CAJA</h2>
+              {hasShift ? (
+                <p className="text-orange-400 text-xs font-bold uppercase">TURNO ACTIVO</p>
+              ) : (
+                <p className="text-slate-400 text-xs font-bold uppercase">SIN TURNO ABIERTO</p>
+              )}
             </div>
           </div>
-
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
+          <button
+            onClick={onClose}
+            className="p-2 bg-slate-700 hover:bg-slate-600 text-white border-2 border-slate-500 transition"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Action Tabs */}
-        <div className="flex border-b border-orange-200 bg-orange-50/40 p-2 gap-2 text-xs font-bold">
-          <button
-            onClick={() => setTab('status')}
-            className={`flex-1 py-2 rounded-xl transition ${
-              tab === 'status' ? 'bg-orange-500 text-white shadow-sm' : 'text-slate-600 hover:text-orange-600'
-            }`}
-          >
-            Resumen
-          </button>
-          {isShiftOpen && (
-            <>
-              <button
-                onClick={() => setTab('movement')}
-                className={`flex-1 py-2 rounded-xl transition ${
-                  tab === 'movement' ? 'bg-orange-500 text-white shadow-sm' : 'text-slate-600 hover:text-orange-600'
-                }`}
-              >
-                + / - Movimiento
-              </button>
-              <button
-                onClick={() => setTab('close')}
-                className={`flex-1 py-2 rounded-xl transition ${
-                  tab === 'close' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-rose-600'
-                }`}
-              >
-                Cierre de Caja
-              </button>
-            </>
-          )}
-          {!isShiftOpen && (
+        {/* No shift state */}
+        {!hasShift ? (
+          <div className="p-6 space-y-4">
+            <div className="text-center py-4 border-2 border-dashed border-slate-300 space-y-2">
+              <AlertTriangle className="w-8 h-8 text-amber-500 mx-auto" />
+              <p className="font-black uppercase text-slate-700">NO HAY TURNO ABIERTO</p>
+              <p className="text-sm text-slate-500 font-bold">Abrí un turno para comenzar a registrar ventas</p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-black uppercase text-slate-700">MONTO INICIAL DE CAJA ($)</label>
+              <input
+                type="number"
+                value={initialCash}
+                onChange={(e) => setInitialCash(e.target.value)}
+                placeholder="0.00"
+                className="w-full p-3 border-2 border-slate-900 font-bold text-slate-900 bg-orange-50/40 focus:outline-none focus:border-orange-500 text-lg"
+              />
+            </div>
+
+            {error && <p className="text-rose-700 text-xs font-black uppercase bg-rose-100 p-2 border-l-4 border-rose-600">{error}</p>}
+
             <button
-              onClick={() => setTab('open')}
-              className={`flex-1 py-2 rounded-xl transition ${
-                tab === 'open' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:text-emerald-600'
-              }`}
+              onClick={handleOpenShift}
+              disabled={loading}
+              className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm uppercase border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              Abrir Caja
+              <Unlock className="w-5 h-5" /> ABRIR TURNO DE CAJA
             </button>
-          )}
-        </div>
+          </div>
+        ) : (
+          <>
+            {/* Tabs */}
+            <div className="flex border-b-2 border-slate-900">
+              {(['resumen', 'movimientos', 'acciones'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`flex-1 py-3 text-xs font-black uppercase border-r-2 last:border-r-0 border-slate-900 transition ${
+                    activeTab === tab ? 'bg-orange-500 text-white' : 'bg-white text-slate-700 hover:bg-orange-50'
+                  }`}
+                >
+                  {tab === 'resumen' ? '📊 RESUMEN' : tab === 'movimientos' ? '🔄 MOVIMIENTOS' : '⚙️ ACCIONES'}
+                </button>
+              ))}
+            </div>
 
-        {/* Modal Content Body */}
-        <div className="p-6 overflow-y-auto space-y-4">
-          {tab === 'status' && (
-            <div className="space-y-4">
-              {/* Cash Summary Grid */}
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="bg-orange-50/30 p-3 rounded-xl border border-orange-200">
-                  <span className="text-slate-500 font-medium block">Monto Inicial</span>
-                  <span className="text-lg font-bold text-slate-900">
-                    ${(totals.initial_cash || 0).toLocaleString('es-AR')}
-                  </span>
-                </div>
-
-                <div className="bg-orange-50/30 p-3 rounded-xl border border-orange-200">
-                  <span className="text-slate-500 font-medium block">Efectivo Esperado</span>
-                  <span className="text-lg font-extrabold text-emerald-700">
-                    ${expectedCash.toLocaleString('es-AR')}
-                  </span>
-                </div>
-
-                <div className="bg-orange-50/30 p-3 rounded-xl border border-orange-200">
-                  <span className="text-slate-500 font-medium block">Ventas Mercado Pago</span>
-                  <span className="text-base font-bold text-sky-700">
-                    ${(totals.mp_sales || 0).toLocaleString('es-AR')}
-                  </span>
-                </div>
-
-                <div className="bg-orange-50/30 p-3 rounded-xl border border-orange-200">
-                  <span className="text-slate-500 font-medium block">Ventas Tarjeta</span>
-                  <span className="text-base font-bold text-purple-700">
-                    ${(totals.card_sales || 0).toLocaleString('es-AR')}
-                  </span>
-                </div>
-              </div>
-
-              {/* Extras Movimientos */}
-              <div className="bg-orange-50/40 p-3.5 rounded-xl border border-orange-200 text-xs space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-slate-600">Ventas en Efectivo:</span>
-                  <span className="font-bold text-slate-900">${(totals.cash_sales || 0).toLocaleString('es-AR')}</span>
-                </div>
-                <div className="flex justify-between text-emerald-700">
-                  <span>+ Ingresos extra:</span>
-                  <span className="font-bold">${(totals.ingresos_extra || 0).toLocaleString('es-AR')}</span>
-                </div>
-                <div className="flex justify-between text-rose-700">
-                  <span>- Egresos / Gastos:</span>
-                  <span className="font-bold">${(totals.egresos_extra || 0).toLocaleString('es-AR')}</span>
-                </div>
-                <div className="border-t border-orange-200 pt-2 flex justify-between text-sm font-black text-orange-600">
-                  <span>TOTAL FACTURADO:</span>
-                  <span>${(totals.total_sales || 0).toLocaleString('es-AR')}</span>
-                </div>
-              </div>
-
-              {/* Movements history */}
-              {shiftData?.movements?.length > 0 && (
-                <div>
-                  <p className="text-xs font-bold text-slate-700 mb-2">Movimientos del Turno:</p>
-                  <div className="space-y-1.5 max-h-32 overflow-y-auto text-xs">
-                    {shiftData.movements.map((m: any) => (
-                      <div key={m.id} className="flex justify-between p-2 bg-slate-50 rounded-lg border border-slate-200">
-                        <span className="flex items-center gap-1 text-slate-800">
-                          {m.type === 'ingreso' ? (
-                            <ArrowDownCircle className="w-3.5 h-3.5 text-emerald-600" />
-                          ) : (
-                            <ArrowUpCircle className="w-3.5 h-3.5 text-rose-600" />
-                          )}
-                          <span>{m.concept}</span>
-                        </span>
-                        <span className={`font-bold ${m.type === 'ingreso' ? 'text-emerald-700' : 'text-rose-700'}`}>
-                          {m.type === 'ingreso' ? '+' : '-'}${m.amount.toLocaleString('es-AR')}
-                        </span>
+            <div className="p-5 space-y-4 flex-1">
+              {/* RESUMEN TAB */}
+              {activeTab === 'resumen' && totals && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { label: 'CAJA INICIAL', value: totals.initial_cash, color: 'slate' },
+                      { label: 'VENTAS EFECTIVO', value: totals.cash_sales, color: 'emerald' },
+                      { label: 'VENTAS TARJETA', value: totals.card_sales, color: 'sky' },
+                      { label: 'VENTAS TRANSFERENCIA', value: totals.transfer_sales, color: 'purple' },
+                      { label: 'ENTRADAS MANUALES', value: totals.manual_in, color: 'emerald' },
+                      { label: 'SALIDAS MANUALES', value: totals.manual_out, color: 'rose' },
+                    ].map((item) => (
+                      <div key={item.label} className={`p-3 border-2 border-slate-900 ${
+                        item.color === 'emerald' ? 'bg-emerald-50' :
+                        item.color === 'sky' ? 'bg-sky-50' :
+                        item.color === 'purple' ? 'bg-purple-50' :
+                        item.color === 'rose' ? 'bg-rose-50' : 'bg-slate-50'
+                      }`}>
+                        <p className="text-[10px] font-black uppercase text-slate-500">{item.label}</p>
+                        <p className="text-lg font-black text-slate-900">${item.value?.toLocaleString('es-AR') ?? '0'}</p>
                       </div>
                     ))}
+                  </div>
+
+                  <div className="p-4 bg-orange-500 border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)]">
+                    <p className="text-white/80 text-xs font-black uppercase">TOTAL EN CAJA (ESTIMADO)</p>
+                    <p className="text-white text-3xl font-black">${totals.expected_cash?.toLocaleString('es-AR') ?? '0'}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* MOVIMIENTOS TAB */}
+              {activeTab === 'movimientos' && (
+                <div className="space-y-3">
+                  <p className="text-xs font-black uppercase text-slate-500">REGISTROS DE MOVIMIENTOS MANUALES</p>
+                  {(!shiftData?.movements || shiftData.movements.length === 0) ? (
+                    <div className="text-center py-6 border-2 border-dashed border-slate-200 text-slate-500">
+                      <ArrowRightLeft className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                      <p className="text-xs font-black uppercase">SIN MOVIMIENTOS REGISTRADOS</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {shiftData.movements.map((m: any) => (
+                        <div key={m.id} className={`p-3 border-2 ${
+                          m.type === 'entrada' ? 'border-emerald-600 bg-emerald-50' : 'border-rose-600 bg-rose-50'
+                        } flex items-center justify-between`}>
+                          <div>
+                            <p className="text-xs font-black uppercase text-slate-900">{m.description}</p>
+                            <p className="text-[10px] text-slate-500 font-bold">
+                              {new Date(m.created_at).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                          <div className={`flex items-center gap-1 font-black text-sm ${
+                            m.type === 'entrada' ? 'text-emerald-700' : 'text-rose-700'
+                          }`}>
+                            {m.type === 'entrada' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                            ${m.amount?.toLocaleString('es-AR')}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ACCIONES TAB */}
+              {activeTab === 'acciones' && (
+                <div className="space-y-5">
+                  {/* Manual Movement */}
+                  <div className="space-y-3">
+                    <p className="text-xs font-black uppercase text-slate-700 border-b-2 border-slate-900 pb-2">REGISTRAR MOVIMIENTO MANUAL</p>
+
+                    <div className="flex border-2 border-slate-900 overflow-hidden">
+                      {(['entrada', 'salida'] as const).map((t) => (
+                        <button
+                          key={t}
+                          onClick={() => setMovementType(t)}
+                          className={`flex-1 py-2.5 text-xs font-black uppercase transition border-r last:border-r-0 border-slate-900 ${
+                            movementType === t
+                              ? t === 'entrada' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+                              : 'bg-white text-slate-700'
+                          }`}
+                        >
+                          {t === 'entrada' ? '⬆️ ENTRADA' : '⬇️ SALIDA'}
+                        </button>
+                      ))}
+                    </div>
+
+                    <input
+                      type="number"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      placeholder="MONTO ($)"
+                      className="w-full p-3 border-2 border-slate-900 font-bold text-slate-900 bg-orange-50/40 focus:outline-none focus:border-orange-500"
+                    />
+                    <input
+                      type="text"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="DESCRIPCIÓN DEL MOVIMIENTO..."
+                      className="w-full p-3 border-2 border-slate-900 font-bold text-slate-900 bg-orange-50/40 focus:outline-none focus:border-orange-500"
+                    />
+
+                    {error && <p className="text-rose-700 text-xs font-black bg-rose-100 p-2 border-l-4 border-rose-600">{error}</p>}
+
+                    <button
+                      onClick={handleMovement}
+                      disabled={loading}
+                      className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-black text-xs uppercase border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <ArrowRightLeft className="w-4 h-4" /> REGISTRAR MOVIMIENTO
+                    </button>
+                  </div>
+
+                  {/* Close Shift */}
+                  <div className="border-t-2 border-dashed border-rose-300 pt-5 space-y-2">
+                    <p className="text-xs font-black uppercase text-rose-700">ZONA DE RIESGO</p>
+                    <button
+                      onClick={handleCloseShift}
+                      disabled={loading}
+                      className="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <Lock className="w-4 h-4" /> CERRAR TURNO DE CAJA
+                    </button>
+                    <p className="text-[10px] text-slate-400 font-bold text-center uppercase">Esta acción cerrará el turno y los totales serán guardados</p>
                   </div>
                 </div>
               )}
             </div>
-          )}
-
-          {tab === 'movement' && (
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs text-slate-700 block mb-1.5 font-bold">Tipo de Movimiento</label>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <button
-                    onClick={() => setMovementType('egreso')}
-                    className={`py-2 rounded-xl font-bold border transition ${
-                      movementType === 'egreso'
-                        ? 'bg-rose-50 border-rose-400 text-rose-700 font-bold'
-                        : 'bg-slate-50 border-slate-200 text-slate-600'
-                    }`}
-                  >
-                    💸 Egreso / Gasto
-                  </button>
-                  <button
-                    onClick={() => setMovementType('ingreso')}
-                    className={`py-2 rounded-xl font-bold border transition ${
-                      movementType === 'ingreso'
-                        ? 'bg-emerald-50 border-emerald-400 text-emerald-700 font-bold'
-                        : 'bg-slate-50 border-slate-200 text-slate-600'
-                    }`}
-                  >
-                    💵 Ingreso Extra
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs text-slate-700 block mb-1 font-bold">Monto ($)</label>
-                <input
-                  type="number"
-                  placeholder="Ej: 3500"
-                  value={movementAmount}
-                  onChange={(e) => setMovementAmount(e.target.value)}
-                  className="w-full bg-orange-50/50 border border-orange-200 rounded-xl py-2 px-3 text-slate-900 text-sm focus:outline-none focus:border-orange-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-slate-700 block mb-1 font-bold">Concepto / Motivo</label>
-                <input
-                  type="text"
-                  placeholder="Ej: Compra de verdura / Pago hielo"
-                  value={movementConcept}
-                  onChange={(e) => setMovementConcept(e.target.value)}
-                  className="w-full bg-orange-50/50 border border-orange-200 rounded-xl py-2 px-3 text-slate-900 text-sm focus:outline-none focus:border-orange-500"
-                />
-              </div>
-
-              <button
-                onClick={handleRegisterMovement}
-                disabled={isLoading}
-                className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-extrabold rounded-xl text-xs uppercase shadow-md shadow-orange-500/20"
-              >
-                Guardar Movimiento
-              </button>
-            </div>
-          )}
-
-          {tab === 'close' && (
-            <div className="space-y-4">
-              <div className="bg-orange-50/40 p-3.5 rounded-xl border border-orange-200 text-xs">
-                <span className="text-slate-600 font-medium block">Efectivo Teórico Esperado en Cajón:</span>
-                <span className="text-2xl font-black text-orange-600">
-                  ${expectedCash.toLocaleString('es-AR')}
-                </span>
-              </div>
-
-              <div>
-                <label className="text-xs text-slate-700 block mb-1 font-extrabold">
-                  Efectivo Contado Físicamente ($)
-                </label>
-                <input
-                  type="number"
-                  placeholder="Contar billetes en caja..."
-                  value={countedCashInput}
-                  onChange={(e) => setCountedCashInput(e.target.value)}
-                  className="w-full bg-orange-50/50 border border-orange-200 rounded-xl py-2.5 px-4 text-slate-900 text-lg font-bold focus:outline-none focus:border-orange-500 text-center"
-                />
-              </div>
-
-              {countedCashInput && (
-                <div
-                  className={`p-3 rounded-xl border text-xs font-bold flex justify-between ${
-                    cashDifference === 0
-                      ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
-                      : cashDifference > 0
-                      ? 'bg-sky-50 border-sky-300 text-sky-800'
-                      : 'bg-rose-50 border-rose-300 text-rose-800'
-                  }`}
-                >
-                  <span>Diferencia de Arqueo:</span>
-                  <span>
-                    {cashDifference > 0 ? `+ $${cashDifference.toLocaleString('es-AR')} (Sobrante)` : cashDifference < 0 ? `- $${Math.abs(cashDifference).toLocaleString('es-AR')} (Faltante)` : 'Exacto (Sin diferencia)'}
-                  </span>
-                </div>
-              )}
-
-              <div>
-                <label className="text-xs text-slate-500 block mb-1">Notas de Cierre (Opcional)</label>
-                <input
-                  type="text"
-                  placeholder="Observaciones sobre el turno..."
-                  value={closeNotesInput}
-                  onChange={(e) => setCloseNotesInput(e.target.value)}
-                  className="w-full bg-orange-50/30 border border-orange-200 rounded-xl py-2 px-3 text-xs text-slate-900"
-                />
-              </div>
-
-              <button
-                onClick={handleCloseCash}
-                disabled={isLoading}
-                className="w-full py-3.5 bg-rose-600 hover:bg-rose-500 text-white font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-lg"
-              >
-                Cerrar Turno de Caja & Realizar Arqueo
-              </button>
-            </div>
-          )}
-
-          {tab === 'open' && (
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs text-slate-700 block mb-1 font-bold">Monto Inicial de Caja ($)</label>
-                <input
-                  type="number"
-                  placeholder="Monto para cambio inicial..."
-                  value={initialCashInput}
-                  onChange={(e) => setInitialCashInput(e.target.value)}
-                  className="w-full bg-orange-50/50 border border-orange-200 rounded-xl py-2.5 px-4 text-slate-900 text-lg font-bold focus:outline-none focus:border-orange-500 text-center"
-                />
-              </div>
-
-              <button
-                onClick={handleOpenCash}
-                disabled={isLoading}
-                className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-lg"
-              >
-                Abrir Nuevo Turno de Caja
-              </button>
-            </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -15,7 +15,8 @@ import {
   QrCode, 
   Scale, 
   MessageSquare,
-  CheckCircle2
+  CheckCircle2,
+  Utensils
 } from 'lucide-react';
 import TicketModal from './TicketModal';
 
@@ -198,41 +199,42 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[calc(100vh-5rem)]">
-      {/* LEFT SECTION: Products & Categories (7 cols) */}
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[calc(100vh-6rem)]">
+      {/* LEFT SECTION: McDonald's Kiosk Style Product Grid (7 cols) */}
       <div className="lg:col-span-7 flex flex-col space-y-4">
-        {/* Search & Category Filter */}
-        <div className="bg-white p-4 rounded-2xl border border-orange-200 shadow-sm space-y-3">
+        {/* Search & Category Filter Header (Square) */}
+        <div className="bg-white p-4 rounded-none border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] space-y-3">
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-orange-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-orange-600" />
             <input
               type="text"
-              placeholder="Buscar plato por nombre..."
+              placeholder="BUSCAR EN EL MENÚ..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-orange-50/40 border border-orange-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:bg-white text-xs font-medium"
+              className="w-full pl-10 pr-4 py-2.5 bg-orange-50/30 border-2 border-slate-900 text-slate-900 font-bold placeholder-slate-400 focus:outline-none focus:bg-white text-xs uppercase"
             />
           </div>
 
+          {/* Category Tabs (Square Buttons) */}
           <div className="flex space-x-2 overflow-x-auto pb-1 no-scrollbar">
             <button
               onClick={() => setSelectedCategory('all')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+              className={`px-4 py-2 rounded-none text-xs font-black uppercase tracking-wider transition-all border-2 ${
                 selectedCategory === 'all'
-                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                  : 'bg-slate-100 text-slate-600 hover:bg-orange-100 hover:text-orange-700'
+                  ? 'bg-orange-500 text-white border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
+                  : 'bg-white text-slate-800 border-slate-300 hover:bg-orange-50 hover:border-orange-500'
               }`}
             >
-              Todos los Platos
+              TODOS LOS PLATOS
             </button>
             {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                className={`px-4 py-2 rounded-none text-xs font-black uppercase tracking-wider transition-all border-2 ${
                   selectedCategory === cat.id
-                    ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                    : 'bg-slate-100 text-slate-600 hover:bg-orange-100 hover:text-orange-700'
+                    ? 'bg-orange-500 text-white border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
+                    : 'bg-white text-slate-800 border-slate-300 hover:bg-orange-50 hover:border-orange-500'
                 }`}
               >
                 {cat.name}
@@ -241,130 +243,155 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
           </div>
         </div>
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto max-h-[calc(100vh-14rem)] pr-1">
-          {filteredProducts.map((product) => (
-            <button
-              key={product.id}
-              onClick={() => addToCart(product)}
-              className="bg-white border border-orange-100 hover:border-orange-400 hover:shadow-md rounded-2xl p-3.5 text-left transition-all flex flex-col justify-between group relative overflow-hidden"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">
-                    {product.category_name}
-                  </span>
-                  {product.unit_type === 'kilo' ? (
-                    <span className="bg-purple-50 text-purple-700 text-[10px] font-bold px-1.5 py-0.5 rounded border border-purple-200 flex items-center gap-1">
-                      <Scale className="w-3 h-3" /> Por Kilo
-                    </span>
-                  ) : (
-                    <span className="bg-slate-100 text-slate-600 text-[10px] font-semibold px-1.5 py-0.5 rounded">
-                      {product.unit_type}
-                    </span>
-                  )}
-                </div>
-                <h3 className="font-bold text-slate-900 text-sm line-clamp-2 group-hover:text-orange-600 transition-colors">
-                  {product.name}
-                </h3>
-                {product.description && (
-                  <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">
-                    {product.description}
-                  </p>
-                )}
-              </div>
+        {/* Products Grid (McDonald's Photo Cards - Square Frames) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 overflow-y-auto max-h-[calc(100vh-15rem)] pr-1">
+          {filteredProducts.map((product) => {
+            const defaultImg = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=80';
+            const imageUrl = product.image_url || defaultImg;
 
-              <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2">
-                <span className="text-base font-extrabold text-orange-600">
-                  ${product.price.toLocaleString('es-AR')}
-                </span>
-                <span className="w-7 h-7 rounded-lg bg-orange-100 text-orange-600 group-hover:bg-orange-500 group-hover:text-white flex items-center justify-center transition-all shadow-sm">
-                  <Plus className="w-4 h-4" />
-                </span>
+            return (
+              <div
+                key={product.id}
+                onClick={() => addToCart(product)}
+                className="bg-white border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] hover:shadow-[6px_6px_0px_0px_rgba(249,115,22,1)] transition-all cursor-pointer flex flex-col justify-between group overflow-hidden"
+              >
+                {/* Product Photo (McDonald's Kiosk Banner) */}
+                <div className="relative w-full h-32 bg-slate-100 border-b-2 border-slate-900 overflow-hidden">
+                  <img
+                    src={imageUrl}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = defaultImg;
+                    }}
+                  />
+                  
+                  {/* Badge unit type */}
+                  <div className="absolute top-2 right-2">
+                    {product.unit_type === 'kilo' ? (
+                      <span className="bg-purple-600 text-white text-[10px] font-black uppercase px-2 py-0.5 border border-slate-900 flex items-center gap-1 shadow-sm">
+                        <Scale className="w-3 h-3" /> POR KILO
+                      </span>
+                    ) : (
+                      <span className="bg-slate-900 text-white text-[10px] font-black uppercase px-2 py-0.5 border border-slate-900 shadow-sm">
+                        {product.unit_type}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Info Container */}
+                <div className="p-3 flex-1 flex flex-col justify-between space-y-2">
+                  <div>
+                    <span className="text-[9px] font-extrabold text-orange-600 uppercase tracking-widest block">
+                      {product.category_name}
+                    </span>
+                    <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm line-clamp-2 uppercase tracking-tight group-hover:text-orange-600 transition-colors">
+                      {product.name}
+                    </h3>
+                  </div>
+
+                  <div className="flex items-center justify-between border-t-2 border-slate-100 pt-2">
+                    <span className="text-base font-black text-slate-900">
+                      ${product.price.toLocaleString('es-AR')}
+                    </span>
+                    
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(product);
+                      }}
+                      className="bg-orange-500 group-hover:bg-orange-600 text-white border border-slate-900 px-2.5 py-1 text-[11px] font-black uppercase flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>AGREGAR</span>
+                    </button>
+                  </div>
+                </div>
               </div>
-            </button>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      {/* RIGHT SECTION: Active Order / Cart (5 cols) */}
-      <div className="lg:col-span-5 bg-white rounded-2xl border border-orange-200 p-5 flex flex-col justify-between shadow-sm">
+      {/* RIGHT SECTION: Cart & Checkout (5 cols - Square Industrial Theme) */}
+      <div className="lg:col-span-5 bg-white rounded-none border-2 border-slate-900 p-5 flex flex-col justify-between shadow-[6px_6px_0px_0px_rgba(15,23,42,1)]">
         <div className="space-y-4">
-          {/* Order Header & Type Selector */}
-          <div className="flex items-center justify-between border-b border-orange-100 pb-3">
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-orange-500" />
-              Nueva Comanda
+          {/* Order Header & Square Type Selector */}
+          <div className="flex items-center justify-between border-b-2 border-slate-900 pb-3">
+            <h2 className="text-base font-black uppercase text-slate-900 flex items-center gap-2">
+              <ShoppingBag className="w-5 h-5 text-orange-600" />
+              NUEVA COMANDA
             </h2>
-            <div className="flex bg-orange-50/60 p-1 rounded-xl border border-orange-200 text-xs">
+            <div className="flex bg-slate-100 p-1 border-2 border-slate-900 text-xs font-black">
               <button
                 onClick={() => setOrderType('mostrador')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition ${
+                className={`px-3 py-1.5 uppercase transition ${
                   orderType === 'mostrador'
-                    ? 'bg-orange-500 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-orange-500 text-white border border-slate-900 shadow-sm'
+                    : 'text-slate-700 hover:text-slate-900'
                 }`}
               >
-                🍽️ Mostrador
+                MOSTRADOR
               </button>
               <button
                 onClick={() => setOrderType('retiro')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition ${
+                className={`px-3 py-1.5 uppercase transition ${
                   orderType === 'retiro'
-                    ? 'bg-orange-500 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-orange-500 text-white border border-slate-900 shadow-sm'
+                    : 'text-slate-700 hover:text-slate-900'
                 }`}
               >
-                📦 Retiro
+                RETIRO
               </button>
               <button
                 onClick={() => setOrderType('delivery')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition ${
+                className={`px-3 py-1.5 uppercase transition ${
                   orderType === 'delivery'
-                    ? 'bg-orange-500 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-orange-500 text-white border border-slate-900 shadow-sm'
+                    : 'text-slate-700 hover:text-slate-900'
                 }`}
               >
-                🛵 Delivery
+                DELIVERY
               </button>
             </div>
           </div>
 
-          {/* Delivery Details */}
+          {/* Delivery Details Inputs (Square) */}
           {(orderType === 'delivery' || orderType === 'retiro') && (
-            <div className="bg-orange-50/40 p-3 rounded-xl border border-orange-200 space-y-2 text-xs">
+            <div className="bg-orange-50/40 p-3 border-2 border-slate-900 space-y-2 text-xs font-bold">
               <div className="grid grid-cols-2 gap-2">
                 <div className="relative">
-                  <User className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-orange-500" />
+                  <User className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-orange-600" />
                   <input
                     type="text"
                     placeholder="Nombre del Cliente"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full pl-8 pr-2 py-1.5 bg-white border border-orange-200 rounded-lg text-slate-900 focus:outline-none focus:border-orange-500"
+                    className="w-full pl-8 pr-2 py-1.5 bg-white border border-slate-900 text-slate-900 font-bold focus:outline-none"
                   />
                 </div>
                 <div className="relative">
-                  <Phone className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-orange-500" />
+                  <Phone className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-orange-600" />
                   <input
                     type="text"
                     placeholder="Teléfono"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
-                    className="w-full pl-8 pr-2 py-1.5 bg-white border border-orange-200 rounded-lg text-slate-900 focus:outline-none focus:border-orange-500"
+                    className="w-full pl-8 pr-2 py-1.5 bg-white border border-slate-900 text-slate-900 font-bold focus:outline-none"
                   />
                 </div>
               </div>
 
               {orderType === 'delivery' && (
                 <div className="relative">
-                  <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-orange-500" />
+                  <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-orange-600" />
                   <input
                     type="text"
                     placeholder="Dirección Completa (Calle, Altura, Dpto)"
                     value={deliveryAddress}
                     onChange={(e) => setDeliveryAddress(e.target.value)}
-                    className="w-full pl-8 pr-2 py-1.5 bg-white border border-orange-200 rounded-lg text-slate-900 focus:outline-none focus:border-orange-500"
+                    className="w-full pl-8 pr-2 py-1.5 bg-white border border-slate-900 text-slate-900 font-bold focus:outline-none"
                   />
                 </div>
               )}
@@ -372,26 +399,26 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
           )}
 
           {/* Cart Items List */}
-          <div className="space-y-2 overflow-y-auto max-h-[300px] pr-1">
+          <div className="space-y-2 overflow-y-auto max-h-[260px] pr-1">
             {cart.length === 0 ? (
-              <div className="text-center py-12 text-slate-400 text-xs">
-                <ShoppingBag className="w-10 h-10 mx-auto mb-2 opacity-30 text-orange-500" />
-                <p className="font-semibold">El pedido está vacío.</p>
-                <p className="text-[11px] text-slate-500 mt-1">Haz clic en los platos para agregarlos a la comanda.</p>
+              <div className="text-center py-12 text-slate-400 text-xs font-bold uppercase border-2 border-dashed border-slate-300 p-4">
+                <Utensils className="w-10 h-10 mx-auto mb-2 opacity-30 text-orange-600" />
+                <p>LA COMANDA ESTÁ VACÍA</p>
+                <p className="text-[10px] text-slate-400 mt-1">SELECCIONE PLATOS DEL MENÚ PARA AGREGAR</p>
               </div>
             ) : (
               cart.map((item, index) => (
                 <div
                   key={index}
-                  className="bg-slate-50 p-3 rounded-xl border border-orange-100 flex items-center justify-between space-x-2 text-xs"
+                  className="bg-white p-3 border-2 border-slate-900 flex items-center justify-between space-x-2 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
                 >
                   <div className="flex-1">
-                    <div className="flex items-center justify-between font-bold text-slate-900">
+                    <div className="flex items-center justify-between text-slate-900 uppercase">
                       <span>{item.product_name}</span>
-                      <span className="text-orange-600 font-extrabold">${item.subtotal.toLocaleString('es-AR')}</span>
+                      <span className="text-orange-600 font-black">${item.subtotal.toLocaleString('es-AR')}</span>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
+                    <div className="flex items-center justify-between text-[10px] text-slate-500 mt-1">
                       <span>
                         ${item.unit_price.toLocaleString('es-AR')} / {item.unit_type}
                       </span>
@@ -401,31 +428,31 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
                           setEditingNotesIndex(index);
                           setItemNoteInput(item.notes || '');
                         }}
-                        className={`text-[10px] flex items-center gap-1 px-2 py-0.5 rounded font-bold ${
+                        className={`text-[10px] flex items-center gap-1 px-2 py-0.5 font-bold uppercase border ${
                           item.notes
-                            ? 'bg-orange-100 text-orange-700 border border-orange-300'
-                            : 'text-slate-400 hover:text-orange-600'
+                            ? 'bg-orange-500 text-white border-slate-900'
+                            : 'bg-slate-100 text-slate-700 border-slate-300 hover:border-orange-500'
                         }`}
                       >
                         <MessageSquare className="w-3 h-3" />
-                        {item.notes ? `Nota: ${item.notes}` : '+ Nota'}
+                        {item.notes ? `NOTA: ${item.notes}` : '+ NOTA'}
                       </button>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-1.5 bg-white border border-orange-200 rounded-lg p-1">
+                  <div className="flex items-center space-x-1 bg-slate-100 border border-slate-900 p-1">
                     <button
                       onClick={() => updateQuantity(index, -1)}
-                      className="text-slate-600 hover:text-orange-600 p-1 rounded hover:bg-orange-50"
+                      className="text-slate-800 hover:text-orange-600 p-1 hover:bg-white border border-transparent hover:border-slate-900"
                     >
                       <Minus className="w-3.5 h-3.5" />
                     </button>
-                    <span className="font-bold text-slate-900 px-1 text-xs">
+                    <span className="font-black text-slate-900 px-1 text-xs">
                       {item.unit_type === 'kilo' ? `${item.quantity}kg` : item.quantity}
                     </span>
                     <button
                       onClick={() => updateQuantity(index, 1)}
-                      className="text-slate-600 hover:text-orange-600 p-1 rounded hover:bg-orange-50"
+                      className="text-slate-800 hover:text-orange-600 p-1 hover:bg-white border border-transparent hover:border-slate-900"
                     >
                       <Plus className="w-3.5 h-3.5" />
                     </button>
@@ -433,7 +460,7 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
 
                   <button
                     onClick={() => removeFromCart(index)}
-                    className="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50"
+                    className="text-slate-400 hover:text-rose-600 p-1"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -444,58 +471,58 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
         </div>
 
         {/* Footer: Payment & Total */}
-        <div className="border-t border-orange-100 pt-4 space-y-3 mt-4">
+        <div className="border-t-2 border-slate-900 pt-4 space-y-3 mt-4">
           <div>
-            <label className="text-xs text-slate-600 font-bold mb-1.5 block">Medio de Pago</label>
-            <div className="grid grid-cols-3 gap-2 text-xs">
+            <label className="text-xs text-slate-900 font-black uppercase mb-1.5 block">Medio de Pago</label>
+            <div className="grid grid-cols-3 gap-2 text-xs font-black">
               <button
                 onClick={() => setPaymentMethod('efectivo')}
-                className={`py-2 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 transition ${
+                className={`py-2 px-3 border-2 uppercase flex items-center justify-center gap-1.5 transition ${
                   paymentMethod === 'efectivo'
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-orange-50'
+                    ? 'bg-emerald-600 text-white border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-orange-50'
                 }`}
               >
-                <DollarSign className="w-4 h-4" /> Efectivo
+                <DollarSign className="w-4 h-4" /> EFECTIVO
               </button>
               <button
                 onClick={() => setPaymentMethod('mercadopago')}
-                className={`py-2 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 transition ${
+                className={`py-2 px-3 border-2 uppercase flex items-center justify-center gap-1.5 transition ${
                   paymentMethod === 'mercadopago'
-                    ? 'bg-sky-600 text-white shadow-sm'
-                    : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-orange-50'
+                    ? 'bg-sky-600 text-white border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-orange-50'
                 }`}
               >
-                <QrCode className="w-4 h-4" /> M. Pago
+                <QrCode className="w-4 h-4" /> M. PAGO
               </button>
               <button
                 onClick={() => setPaymentMethod('tarjeta')}
-                className={`py-2 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 transition ${
+                className={`py-2 px-3 border-2 uppercase flex items-center justify-center gap-1.5 transition ${
                   paymentMethod === 'tarjeta'
-                    ? 'bg-purple-600 text-white shadow-sm'
-                    : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-orange-50'
+                    ? 'bg-purple-600 text-white border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-orange-50'
                 }`}
               >
-                <CreditCard className="w-4 h-4" /> Tarjeta
+                <CreditCard className="w-4 h-4" /> TARJETA
               </button>
             </div>
           </div>
 
           {paymentMethod === 'efectivo' && (
-            <div className="grid grid-cols-2 gap-2 text-xs bg-orange-50/50 p-2.5 rounded-xl border border-orange-200">
+            <div className="grid grid-cols-2 gap-2 text-xs bg-orange-50/50 p-2.5 border-2 border-slate-900 font-bold">
               <div>
-                <label className="text-[11px] text-slate-600 font-semibold block">Paga con ($)</label>
+                <label className="text-[10px] text-slate-700 uppercase block font-extrabold">PAGA CON ($)</label>
                 <input
                   type="number"
-                  placeholder="Ej: 10000"
+                  placeholder="10000"
                   value={cashPaid}
                   onChange={(e) => setCashPaid(e.target.value)}
-                  className="w-full bg-white border border-orange-200 rounded-lg py-1 px-2 text-slate-900 font-bold focus:outline-none focus:border-orange-500"
+                  className="w-full bg-white border border-slate-900 py-1 px-2 text-slate-900 font-black focus:outline-none"
                 />
               </div>
               <div>
-                <label className="text-[11px] text-slate-600 font-semibold block">Vuelto a entregar</label>
-                <div className="py-1 px-2 font-extrabold text-emerald-700 text-sm">
+                <label className="text-[10px] text-slate-700 uppercase block font-extrabold">VUELTO</label>
+                <div className="py-1 px-2 font-black text-emerald-700 text-sm">
                   ${changeAmount > 0 ? changeAmount.toLocaleString('es-AR') : '0'}
                 </div>
               </div>
@@ -504,69 +531,69 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
 
           <input
             type="text"
-            placeholder="Observaciones de la comanda (Ej. Para comer acá / Retira 20:30hs)"
+            placeholder="OBSERVACIONES DE LA COMANDA..."
             value={orderNotes}
             onChange={(e) => setOrderNotes(e.target.value)}
-            className="w-full bg-orange-50/30 border border-orange-200 rounded-xl py-2 px-3 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-orange-500"
+            className="w-full bg-white border-2 border-slate-900 py-2 px-3 text-xs text-slate-900 font-bold placeholder-slate-400 focus:outline-none uppercase"
           />
 
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-base font-black text-slate-900">
-              <span>TOTAL</span>
+            <div className="flex items-center justify-between text-base font-black text-slate-900 border-t border-slate-200 pt-2">
+              <span>TOTAL A PAGAR</span>
               <span className="text-orange-600 text-xl font-black">${cartTotal.toLocaleString('es-AR')}</span>
             </div>
 
             <button
               onClick={handleSubmitOrder}
               disabled={cart.length === 0 || isSubmitting}
-              className={`w-full py-3.5 rounded-xl font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all ${
+              className={`w-full py-4 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] transition-all ${
                 cart.length > 0 && !isSubmitting
-                  ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20'
-                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  ? 'bg-orange-500 hover:bg-orange-600 text-white active:translate-x-0.5 active:translate-y-0.5'
+                  : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none border-slate-300'
               }`}
             >
               <CheckCircle2 className="w-5 h-5" />
-              {isSubmitting ? 'Procesando...' : `Confirmar Comanda ($${cartTotal.toLocaleString('es-AR')})`}
+              {isSubmitting ? 'PROCESANDO...' : `CONFIRMAR COMANDA ($${cartTotal.toLocaleString('es-AR')})`}
             </button>
           </div>
         </div>
       </div>
 
-      {/* WEIGHT MODAL */}
+      {/* WEIGHT MODAL (Square) */}
       {weightModalItem && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-orange-200 rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-xl">
-            <div className="flex items-center space-x-3">
-              <div className="p-3 bg-orange-100 text-orange-600 rounded-xl">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-slate-900 p-6 max-w-sm w-full space-y-4 shadow-[8px_8px_0px_0px_rgba(15,23,42,1)]">
+            <div className="flex items-center space-x-3 border-b-2 border-slate-900 pb-3">
+              <div className="p-3 bg-orange-500 text-white border-2 border-slate-900">
                 <Scale className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-bold text-slate-900 text-base">{weightModalItem.name}</h3>
-                <p className="text-xs text-slate-500">${weightModalItem.price.toLocaleString('es-AR')} por Kilo</p>
+                <h3 className="font-black text-slate-900 text-sm uppercase">{weightModalItem.name}</h3>
+                <p className="text-xs text-orange-600 font-bold">${weightModalItem.price.toLocaleString('es-AR')} por Kilo</p>
               </div>
             </div>
 
             <div>
-              <label className="text-xs text-slate-700 block mb-1.5 font-bold">Ingresar gramos (g):</label>
+              <label className="text-xs text-slate-900 block mb-1.5 font-black uppercase">INGRESAR GRAMOS (g):</label>
               <input
                 type="number"
                 step="50"
                 value={inputWeightGrams}
                 onChange={(e) => setInputWeightGrams(e.target.value)}
-                className="w-full bg-orange-50/50 border border-orange-200 rounded-xl py-2.5 px-4 text-slate-900 text-lg font-bold focus:outline-none focus:border-orange-500 text-center"
+                className="w-full bg-orange-50/50 border-2 border-slate-900 py-2.5 px-4 text-slate-900 text-xl font-black text-center focus:outline-none"
               />
-              <p className="text-xs text-orange-600 font-extrabold text-center mt-2">
+              <p className="text-xs text-orange-600 font-black text-center mt-2 uppercase">
                 = {(parseFloat(inputWeightGrams) / 1000 || 0).toFixed(3)} kg ($
                 {(((parseFloat(inputWeightGrams) / 1000) || 0) * weightModalItem.price).toLocaleString('es-AR')})
               </p>
             </div>
 
-            <div className="grid grid-cols-4 gap-2 text-xs">
+            <div className="grid grid-cols-4 gap-2 text-xs font-black">
               {['250', '500', '750', '1000'].map((grams) => (
                 <button
                   key={grams}
                   onClick={() => setInputWeightGrams(grams)}
-                  className="py-1.5 bg-slate-100 hover:bg-orange-100 text-slate-800 hover:text-orange-700 rounded-lg font-bold"
+                  className="py-2 bg-slate-100 hover:bg-orange-500 hover:text-white border-2 border-slate-900"
                 >
                   {grams}g
                 </button>
@@ -576,15 +603,15 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
             <div className="flex space-x-2 pt-2">
               <button
                 onClick={() => setWeightModalItem(null)}
-                className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs"
+                className="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-900 font-black border-2 border-slate-900 text-xs uppercase"
               >
-                Cancelar
+                CANCELAR
               </button>
               <button
                 onClick={handleAddWeightItem}
-                className="flex-1 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-xs shadow-md shadow-orange-500/20"
+                className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-black border-2 border-slate-900 text-xs uppercase shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
               >
-                Agregar al Carrito
+                AGREGAR
               </button>
             </div>
           </div>
@@ -593,28 +620,28 @@ export default function POSView({ products, categories, onOrderCreated, shiftDat
 
       {/* ITEM NOTES MODAL */}
       {editingNotesIndex !== null && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-orange-200 rounded-2xl p-5 max-w-sm w-full space-y-3 shadow-xl">
-            <h3 className="font-bold text-slate-900 text-sm">Nota de preparación para el plato</h3>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-slate-900 p-5 max-w-sm w-full space-y-3 shadow-[8px_8px_0px_0px_rgba(15,23,42,1)]">
+            <h3 className="font-black text-slate-900 text-xs uppercase">NOTA DE PREPARACIÓN</h3>
             <input
               type="text"
-              placeholder="Ej: Sin cebolla, Salsa aparte, Bien dorado"
+              placeholder="Ej: Sin cebolla, Salsa aparte"
               value={itemNoteInput}
               onChange={(e) => setItemNoteInput(e.target.value)}
-              className="w-full bg-orange-50/50 border border-orange-200 rounded-xl py-2 px-3 text-slate-900 text-xs focus:outline-none focus:border-orange-500"
+              className="w-full bg-orange-50/50 border-2 border-slate-900 py-2 px-3 text-slate-900 text-xs font-bold focus:outline-none uppercase"
             />
             <div className="flex space-x-2 pt-2">
               <button
                 onClick={() => setEditingNotesIndex(null)}
-                className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs"
+                className="flex-1 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 font-black border-2 border-slate-900 text-xs uppercase"
               >
-                Cancelar
+                CANCELAR
               </button>
               <button
                 onClick={saveItemNotes}
-                className="flex-1 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-xs shadow-md"
+                className="flex-1 py-2 bg-orange-500 hover:bg-orange-600 text-white font-black border-2 border-slate-900 text-xs uppercase shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
               >
-                Guardar Nota
+                GUARDAR
               </button>
             </div>
           </div>

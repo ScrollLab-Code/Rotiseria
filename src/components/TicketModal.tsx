@@ -27,40 +27,40 @@ export default function TicketModal({ order, onClose, mode = 'ticket' }: TicketM
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="bg-slate-900 text-slate-100 rounded-2xl max-w-md w-full border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+      <div className="bg-slate-900 text-slate-100 max-w-md w-full border-4 border-slate-700 shadow-[8px_8px_0px_0px_rgba(249,115,22,1)] overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header toolbar */}
-        <div className="p-4 bg-slate-800 flex items-center justify-between border-b border-slate-700">
+        <div className="p-4 bg-slate-800 flex items-center justify-between border-b-2 border-slate-700">
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setViewMode('ticket')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                viewMode === 'ticket' ? 'bg-amber-500 text-slate-950' : 'bg-slate-700 text-slate-300'
+              className={`px-3 py-1.5 text-xs font-black uppercase transition border-2 border-slate-600 ${
+                viewMode === 'ticket' ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-700 text-slate-300'
               }`}
             >
-              Ticket Cliente
+              TICKET CLIENTE
             </button>
             <button
               onClick={() => setViewMode('kitchen')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                viewMode === 'kitchen' ? 'bg-orange-600 text-white' : 'bg-slate-700 text-slate-300'
+              className={`px-3 py-1.5 text-xs font-black uppercase transition border-2 border-slate-600 ${
+                viewMode === 'kitchen' ? 'bg-orange-600 text-white border-orange-400' : 'bg-slate-700 text-slate-300'
               }`}
             >
-              Comanda Cocina
+              COMANDA COCINA
             </button>
           </div>
 
           <div className="flex items-center space-x-2">
             <button
               onClick={handlePrint}
-              className="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-medium shadow transition"
+              className="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 font-black uppercase border-2 border-emerald-400 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] transition"
             >
               <Printer className="w-4 h-4" />
-              <span>Imprimir</span>
+              <span>IMPRIMIR</span>
             </button>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700 transition"
+              className="text-slate-400 hover:text-white p-1.5 hover:bg-slate-700 border-2 border-slate-600 transition"
             >
               <X className="w-5 h-5" />
             </button>
@@ -78,8 +78,8 @@ export default function TicketModal({ order, onClose, mode = 'ticket' }: TicketM
             {/* Header */}
             {viewMode === 'ticket' ? (
               <div className="text-center mb-4 border-b border-dashed border-slate-400 pb-3">
-                <h2 className="text-lg font-bold tracking-wider">ROTISERÍA EL BUEN GUSTO</h2>
-                <p className="text-[10px] text-gray-600">Comidas Caseras & Minutas</p>
+                <h2 className="text-lg font-bold tracking-wider">EMPANADAS PICÚN</h2>
+                <p className="text-[10px] text-gray-600">Rotisería & Comidas Caseras</p>
                 <p className="text-[10px] text-gray-600">Tel: (011) 4567-8900</p>
                 <div className="mt-2 text-left text-[11px] space-y-0.5">
                   <p><strong>Pedido N°: #{order.order_number}</strong></p>

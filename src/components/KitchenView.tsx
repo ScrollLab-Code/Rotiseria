@@ -41,60 +41,43 @@ export default function KitchenView({ orders, onRefresh }: KitchenViewProps) {
 
   return (
     <div className="space-y-6">
-      {/* Top Header & Status Filter */}
-      <div className="bg-white p-4 rounded-2xl border border-orange-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+      {/* Header */}
+      <div className="bg-white p-4 border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
-          <div className="p-3 bg-orange-100 text-orange-600 rounded-xl">
+          <div className="p-3 bg-orange-500 text-white border-2 border-slate-900">
             <ChefHat className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-lg font-extrabold text-slate-900">Monitor de Cocina (KDS)</h2>
-            <p className="text-xs text-slate-500 font-medium">
-              {activeOrders.length} pedido(s) pendientes de elaboración
+            <h2 className="text-lg font-black uppercase text-slate-900">MONITOR DE COCINA (KDS)</h2>
+            <p className="text-xs text-orange-600 font-bold uppercase">
+              {activeOrders.length} PEDIDO(S) EN CURSO
             </p>
           </div>
         </div>
 
         <div className="flex items-center space-x-2">
-          <div className="flex bg-orange-50/60 p-1 rounded-xl border border-orange-200 text-xs font-bold">
-            <button
-              onClick={() => setSelectedStatus('activos')}
-              className={`px-3 py-1.5 rounded-lg transition ${
-                selectedStatus === 'activos' ? 'bg-orange-500 text-white shadow-sm' : 'text-slate-600 hover:text-orange-600'
-              }`}
-            >
-              En Curso ({activeOrders.length})
-            </button>
-            <button
-              onClick={() => setSelectedStatus('pendiente')}
-              className={`px-3 py-1.5 rounded-lg transition ${
-                selectedStatus === 'pendiente' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:text-rose-600'
-              }`}
-            >
-              Pendientes
-            </button>
-            <button
-              onClick={() => setSelectedStatus('en_preparacion')}
-              className={`px-3 py-1.5 rounded-lg transition ${
-                selectedStatus === 'en_preparacion' ? 'bg-orange-600 text-white shadow-sm' : 'text-slate-600 hover:text-orange-600'
-              }`}
-            >
-              En Horno / Fuego
-            </button>
-            <button
-              onClick={() => setSelectedStatus('listo')}
-              className={`px-3 py-1.5 rounded-lg transition ${
-                selectedStatus === 'listo' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:text-emerald-600'
-              }`}
-            >
-              Listos
-            </button>
+          <div className="flex border-2 border-slate-900 text-xs font-black bg-white">
+            {[
+              { id: 'activos', label: `EN CURSO (${activeOrders.length})`, color: 'bg-orange-500' },
+              { id: 'pendiente', label: 'PENDIENTES', color: 'bg-rose-600' },
+              { id: 'en_preparacion', label: 'EN PREPARACIÓN', color: 'bg-amber-500' },
+              { id: 'listo', label: 'LISTOS', color: 'bg-emerald-600' },
+            ].map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setSelectedStatus(s.id)}
+                className={`px-3 py-2 uppercase transition border-r last:border-r-0 border-slate-900 ${
+                  selectedStatus === s.id ? `${s.color} text-white` : 'text-slate-700 hover:bg-orange-50'
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
           </div>
 
           <button
             onClick={onRefresh}
-            className="p-2 bg-slate-100 hover:bg-orange-100 text-slate-700 hover:text-orange-700 rounded-xl transition border border-slate-200"
-            title="Actualizar comision"
+            className="p-2.5 bg-slate-900 text-white border-2 border-slate-900 hover:bg-slate-700 transition shadow-[2px_2px_0px_0px_rgba(249,115,22,1)]"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
@@ -103,157 +86,140 @@ export default function KitchenView({ orders, onRefresh }: KitchenViewProps) {
 
       {/* Orders Grid */}
       {filteredOrders.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-2xl border border-orange-200 text-slate-400 shadow-sm">
-          <ChefHat className="w-12 h-12 mx-auto mb-3 opacity-30 text-orange-500" />
-          <p className="text-base font-bold text-slate-700">No hay comandas en este estado.</p>
-          <p className="text-xs text-slate-500 mt-1">Los nuevos pedidos aparecerán aquí automáticamente.</p>
+        <div className="text-center py-20 bg-white border-2 border-dashed border-slate-400 text-slate-500">
+          <ChefHat className="w-12 h-12 mx-auto mb-3 opacity-30 text-orange-600" />
+          <p className="text-base font-black uppercase text-slate-700">NO HAY COMANDAS EN ESTE ESTADO</p>
+          <p className="text-xs text-slate-500 mt-1 uppercase font-bold">LOS NUEVOS PEDIDOS APARECERÁN AQUÍ AUTOMÁTICAMENTE</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredOrders.map((order) => {
             const elapsed = getMinutesElapsed(order.created_at);
             const isUrgent = elapsed > 20;
 
-            let cardBorder = 'border-orange-200';
-            let badgeBg = 'bg-slate-100 text-slate-700';
+            let leftBorder = 'border-l-4 border-l-orange-400';
+            let badgeCls = 'bg-slate-200 text-slate-900';
 
             if (order.kitchen_status === 'pendiente') {
-              cardBorder = isUrgent ? 'border-rose-400 shadow-rose-100' : 'border-orange-300';
-              badgeBg = 'bg-rose-50 text-rose-700 border border-rose-200';
+              leftBorder = isUrgent ? 'border-l-4 border-l-rose-600' : 'border-l-4 border-l-amber-500';
+              badgeCls = 'bg-rose-600 text-white';
             } else if (order.kitchen_status === 'en_preparacion') {
-              cardBorder = 'border-orange-400';
-              badgeBg = 'bg-orange-50 text-orange-700 border border-orange-300';
+              leftBorder = 'border-l-4 border-l-orange-500';
+              badgeCls = 'bg-orange-500 text-white';
             } else if (order.kitchen_status === 'listo') {
-              cardBorder = 'border-emerald-400';
-              badgeBg = 'bg-emerald-50 text-emerald-700 border border-emerald-300';
+              leftBorder = 'border-l-4 border-l-emerald-600';
+              badgeCls = 'bg-emerald-600 text-white';
             }
 
             return (
               <div
                 key={order.id}
-                className={`bg-white rounded-2xl border ${cardBorder} shadow-sm p-5 flex flex-col justify-between space-y-4 transition-all relative overflow-hidden`}
+                className={`bg-white border-2 border-slate-900 ${leftBorder} shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex flex-col justify-between space-y-4 overflow-hidden`}
               >
-                <div>
-                  {/* Order Top Bar */}
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                {/* Card Header */}
+                <div className="p-4">
+                  <div className="flex items-center justify-between border-b-2 border-slate-100 pb-3">
                     <div className="flex items-center space-x-2">
-                      <span className="text-2xl font-black text-orange-600">#{order.order_number}</span>
-                      <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${badgeBg}`}>
+                      <span className="text-3xl font-black text-orange-600">#{order.order_number}</span>
+                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 ${badgeCls}`}>
                         {order.kitchen_status.replace('_', ' ')}
                       </span>
                     </div>
 
                     <div className="flex items-center space-x-2">
-                      <div
-                        className={`flex items-center space-x-1 text-xs font-bold px-2 py-1 rounded-lg ${
-                          isUrgent ? 'bg-rose-100 text-rose-700 animate-pulse border border-rose-300' : 'bg-slate-100 text-slate-600'
-                        }`}
-                      >
+                      <div className={`flex items-center space-x-1 text-xs font-black px-2 py-1 border ${
+                        isUrgent ? 'bg-rose-600 text-white border-rose-900 animate-pulse' : 'bg-slate-100 text-slate-700 border-slate-300'
+                      }`}>
                         <Clock className="w-3.5 h-3.5" />
-                        <span>{elapsed} min</span>
+                        <span>{elapsed} MIN</span>
                       </div>
 
                       <button
                         onClick={() => setSelectedTicketOrder(order)}
-                        className="p-1.5 bg-slate-100 hover:bg-orange-100 text-slate-700 hover:text-orange-700 rounded-lg transition"
-                        title="Ver Comanda"
+                        className="p-1.5 bg-slate-900 text-white border border-slate-900 hover:bg-slate-700 transition"
                       >
                         <Printer className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
 
-                  {/* Order Type & Client info */}
-                  <div className="mt-3 flex items-center justify-between text-xs font-bold">
-                    <span className="flex items-center gap-1.5 text-slate-800">
-                      {order.order_type === 'delivery' ? (
-                        <>
-                          <Bike className="w-4 h-4 text-sky-600" />
-                          <span className="text-sky-600">DELIVERY</span>
-                        </>
-                      ) : order.order_type === 'retiro' ? (
-                        <>
-                          <Package className="w-4 h-4 text-purple-600" />
-                          <span className="text-purple-600">RETIRO EN LOCAL</span>
-                        </>
-                      ) : (
-                        <>
-                          <ShoppingBag className="w-4 h-4 text-emerald-600" />
-                          <span className="text-emerald-600">MOSTRADOR</span>
-                        </>
-                      )}
-                    </span>
-
+                  {/* Order Type & Client */}
+                  <div className="mt-3 flex items-center justify-between text-xs font-black uppercase">
+                    {order.order_type === 'delivery' ? (
+                      <span className="flex items-center gap-1.5 text-sky-700 bg-sky-100 px-2 py-0.5 border border-sky-400">
+                        <Bike className="w-4 h-4" /> DELIVERY
+                      </span>
+                    ) : order.order_type === 'retiro' ? (
+                      <span className="flex items-center gap-1.5 text-purple-700 bg-purple-100 px-2 py-0.5 border border-purple-400">
+                        <Package className="w-4 h-4" /> RETIRO
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1.5 text-emerald-700 bg-emerald-100 px-2 py-0.5 border border-emerald-400">
+                        <ShoppingBag className="w-4 h-4" /> MOSTRADOR
+                      </span>
+                    )}
                     {order.customer_name && (
-                      <span className="text-slate-800 font-bold">{order.customer_name}</span>
+                      <span className="text-slate-900 font-black">{order.customer_name}</span>
                     )}
                   </div>
 
                   {order.delivery_address && (
-                    <p className="text-xs text-slate-600 mt-1 font-semibold bg-orange-50/50 p-2 rounded-lg border border-orange-100">
+                    <p className="text-xs text-slate-700 mt-2 font-bold bg-orange-50/50 p-2 border-l-4 border-orange-500">
                       📍 {order.delivery_address}
                     </p>
                   )}
 
-                  {/* Items list */}
+                  {/* Items */}
                   <div className="mt-4 space-y-2">
-                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Ítems a preparar:</p>
-                    <div className="space-y-1.5">
-                      {order.items?.map((item: any, idx: number) => (
-                        <div key={idx} className="bg-orange-50/30 p-2.5 rounded-xl border border-orange-100 text-xs">
-                          <div className="flex items-center justify-between font-extrabold text-slate-900">
-                            <span>
-                              <span className="text-orange-600 font-black text-sm mr-2">
-                                {item.unit_type === 'kilo' ? `${item.quantity} kg` : `${item.quantity}x`}
-                              </span>
-                              {item.product_name}
-                            </span>
-                          </div>
-
-                          {item.notes && (
-                            <p className="mt-1 text-[11px] font-extrabold text-rose-700 bg-rose-50 p-1.5 rounded-lg border border-rose-200 uppercase tracking-wide">
-                              ⚠️ NOTA: {item.notes}
-                            </p>
-                          )}
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">ITEMS A PREPARAR:</p>
+                    {order.items?.map((item: any, idx: number) => (
+                      <div key={idx} className="bg-slate-50 p-2.5 border-2 border-slate-200 text-xs">
+                        <div className="flex items-center font-black text-slate-900 uppercase">
+                          <span className="text-orange-600 font-black text-sm mr-2 min-w-[40px]">
+                            {item.unit_type === 'kilo' ? `${item.quantity}KG` : `${item.quantity}x`}
+                          </span>
+                          {item.product_name}
                         </div>
-                      ))}
-                    </div>
+                        {item.notes && (
+                          <p className="mt-1 text-[11px] font-black text-rose-700 bg-rose-100 p-1.5 border-l-4 border-rose-600 uppercase">
+                            ⚠️ NOTA: {item.notes}
+                          </p>
+                        )}
+                      </div>
+                    ))}
                   </div>
 
-                  {/* General order notes */}
                   {order.notes && (
-                    <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 font-medium">
-                      📌 <span className="font-bold">Observación:</span> {order.notes}
+                    <div className="mt-3 p-2 bg-amber-100 border-l-4 border-amber-500 text-xs text-amber-900 font-bold uppercase">
+                      📌 {order.notes}
                     </div>
                   )}
                 </div>
 
-                {/* Status Action Buttons */}
-                <div className="pt-2 border-t border-slate-100 flex space-x-2">
+                {/* Action Buttons */}
+                <div className="border-t-2 border-slate-900 flex">
                   {order.kitchen_status === 'pendiente' && (
                     <button
                       onClick={() => handleUpdateStatus(order.id, 'en_preparacion')}
-                      className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-extrabold rounded-xl text-xs uppercase flex items-center justify-center gap-2 shadow-md shadow-orange-500/20"
+                      className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-black text-xs uppercase flex items-center justify-center gap-2"
                     >
-                      <Flame className="w-4 h-4" /> Empezar a Preparar
+                      <Flame className="w-4 h-4" /> INICIAR PREPARACIÓN
                     </button>
                   )}
-
                   {order.kitchen_status === 'en_preparacion' && (
                     <button
                       onClick={() => handleUpdateStatus(order.id, 'listo')}
-                      className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-xs uppercase flex items-center justify-center gap-2 shadow-md"
+                      className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase flex items-center justify-center gap-2"
                     >
-                      <CheckCircle2 className="w-4 h-4" /> Marcar como LISTO
+                      <CheckCircle2 className="w-4 h-4" /> MARCAR COMO LISTO
                     </button>
                   )}
-
                   {order.kitchen_status === 'listo' && (
                     <button
                       onClick={() => handleUpdateStatus(order.id, 'entregado')}
-                      className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-extrabold rounded-xl text-xs uppercase flex items-center justify-center gap-2"
+                      className="w-full py-3 bg-slate-900 hover:bg-slate-700 text-white font-black text-xs uppercase flex items-center justify-center gap-2"
                     >
-                      <Package className="w-4 h-4" /> Entregado / Despachado
+                      <Package className="w-4 h-4" /> ENTREGADO / DESPACHADO
                     </button>
                   )}
                 </div>
@@ -263,7 +229,6 @@ export default function KitchenView({ orders, onRefresh }: KitchenViewProps) {
         </div>
       )}
 
-      {/* TICKET MODAL */}
       {selectedTicketOrder && (
         <TicketModal
           order={selectedTicketOrder}
